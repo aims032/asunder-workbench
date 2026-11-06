@@ -1,0 +1,38 @@
+# CI: checks that the code compiles and the tests pass on every push.
+#
+# Two jobs:
+#  - core-tests (Linux, cheap): runs AsunderCore's unit tests. This covers the
+#    clock and wrap math every phone has to agree on.
+#  - ios-build (macOS, costs ~10x more minutes): builds the actual iPhone app
+#    for the simulator. It runs on pull requests and on demand, not on every push.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test AsunderCore
+        run: swift test --package-path AsunderCore
+
+  ios-build:
+    if: github.event_name != 'push'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Build app for the iOS Simulator
+        run: |
+          xcodebuild build \
+            -project Asunder.xcodeproj \
+            -scheme Asunder \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
