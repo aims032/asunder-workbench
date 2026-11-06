@@ -11,6 +11,7 @@ Asunder/              The iPhone app: screens, audio engine, haptics.
 AsunderCore/          Pure logic as a Swift package: band, clock, dial physics, Tuning.swift.
                       No UI or audio imports, so it's testable anywhere.
 docs/                 Design docs (source of truth).
+materials/            Poetry, channel maps. Reference only.
 .github/workflows/    CI: runs the core tests and builds the app.
 ```
 

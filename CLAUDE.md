@@ -60,5 +60,5 @@ Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` 
 
 - `Asunder.xcodeproj` + `Asunder/`: the iPhone app (SwiftUI, audio, haptics). `Asunder/` is a synced folder, so new files join the target automatically.
 - `AsunderCore/`: a local Swift package with the pure logic (band, clock, dial physics, `Tuning.swift`). It must not import UIKit, SwiftUI or AVFoundation, so it keeps building and testing on Linux CI.
-- `docs/`: the design docs.
+- `docs/`: the design docs (source of truth). `materials/`: Evan's poetry and channel maps, reference only.
 - CI (`.github/workflows/ci.yml`) runs the core tests on every push and builds the app on PRs.
