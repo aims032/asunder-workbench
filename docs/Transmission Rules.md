@@ -262,7 +262,7 @@ The piece is always playing somewhere on the band. A chaser follows it.
 
 1. D and T for her calling-out (§6), and the 90-second window.
 2. Grace G for the chase (and whether it equals the whole-listen dropout grace).
-3. Where the Notebook lives in the UI, and how pages are revealed (§11).
+3. How Notebook pages are revealed (§11). ~~Where the Notebook lives in the UI.~~ Resolved Nov 6: the terminal (Instruments §0).
 4. Call-out voice: same as the gated voice, or rawer? (§6)
 5. Day-turn hour.
 6. Drift amount ε, and whether direction ever varies.
@@ -302,7 +302,7 @@ The Physicist's equations appear in the app, seen, in the notation of *The Mater
 - Pages revealed by *doing*: hearing your first fragment unlocks the loop page; your first whole listen unlocks Worldline; and so on. The notebook fills in as you earn it. Ties reward to the ladder (§12).
 - Pages scattered as transmissions: a page is a thing you catch, like a fragment. Most in-world; hardest to tune.
 
-**Where (Open).** A notebook you open from the receiver; plates behind the dial glass; margins of the scale. Belongs with the device-vs-geometry session.
+**Where.** Resolved Nov 6 (evening): the Notebook is the **terminal**, a computer terminal on its own page where only the Physicist writes (Instruments §0). ~~A notebook you open from the receiver; plates behind the dial glass; margins of the scale. Belongs with the device-vs-geometry session.~~ Device-vs-geometry was settled Nov 7: a device, drawn as real hardware (Color.md).
 
 ---
 

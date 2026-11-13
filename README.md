@@ -25,7 +25,7 @@ Why the split: the rules every phone must compute identically (clock, wrap, week
    - Team: pick your Apple Developer account.
    - Bundle Identifier: change `com.example.asunder` to something you own, e.g. `com.yourname.asunder`.
 4. Plug in your iPhone, pick it as the run destination, press **⌘R**.
-   You should see a black screen with `ASUNDER` and `0.25` (that number proves the core package is linked).
+   You should see a black screen with `ASUNDER` and `0.25` (that number proves the core package is linked). The black screen is a placeholder, not the design.
 5. **⌘U** runs the AsunderCore tests.
 
 From the terminal, core tests also run with: `swift test --package-path AsunderCore`

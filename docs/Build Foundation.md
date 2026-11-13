@@ -9,6 +9,8 @@ Revision log:
 - Nov 5 — **observation defined**: hearing a transmission through to the end constitutes a whole listen. Mechanics proposed in §5.
 - Nov 5 (late) — **the 3-day cycle** supersedes "fade over weeks, then gone." Shattered transmissions return whole after 3 moving days, drifted, and the cycle repeats. Fragment placement rules, the weekly rule rotation, Still days, the live chase, and the Asunder's gated voice are all in **Transmission Rules.md**. §5 below is marked where it's superseded; the pattern menu stays as background.
 - Nov 6 — **No transmission at launch; the receiver is a suite of instruments.** The app ships as a toy and a game before anyone speaks on the band: generated static, lawful interference, a waterfall spectrum analyzer and an oscilloscope beside the dial. The first transmission is an event. Details in **Instruments.md**. The "ten listeners" question (what's good single-player) is answered by this: the band is alive from the clock alone. Phases in §9 reordered: the Shatter and the server move *after* the suite.
+- Nov 7 — **The look is real hardware.** The receiver is drawn as the Physicist's hidden workstation, in the style of the UAD plug-ins: realistic controls, cream faceplates, wood, worn paint, amber VU lights, uncluttered. Black-and-white moves to the website. Supersedes the Nov 6 black-and-white app direction and settles device-vs-geometry (§7). Details in **Color.md**. (Entered here Nov 12.)
+- Nov 12 — **Newest decision wins** when sources disagree; the repo docs were brought up to date on that rule. The dial is a real-looking wheel you can see and spin forever, superseding "small, mostly felt." The spectrum analyzer is a real analog instrument, superseding the waterfall as the display. Details in **Instruments.md**.
 
 ---
 
@@ -18,7 +20,7 @@ Six layers. Every app has all six, even if some are tiny at first.
 
 | Layer | Plain meaning | For Asunder |
 | --- | --- | --- |
-| **Client** | The thing on the phone. Screens, touch, sound out of the speaker. | The receiver: dial, waterfall, scope, needle, static, playback. |
+| **Client** | The thing on the phone. Screens, touch, sound out of the speaker. | The receiver: dial, analyzer, scope, needle, static, playback. |
 | **Content** | The stuff the client shows or plays. | Music, dialogue fragments, transmissions, and a list describing each one (where it lives on the band, when, how long). Before the first transmission: the interference features (Instruments §3). |
 | **Clock / rules** | The logic that decides what's happening right now. | Which transmissions and features are live, where, how far in, and whether transmissions are whole or shattered. |
 | **Backend** | A computer somewhere else that the client talks to. | One small job: remember when each transmission was first observed (§4). Not needed until the first transmission. |
@@ -35,7 +37,7 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 
 - **Confirmed:** Native iPhone app in Swift first. Android later, as a port, once the design has stopped moving.
 - **Confirmed:** First milestone is the dial itself: a satisfying wheel people want to play with, with precise frequencies to catch.
-- **Confirmed (Nov 6):** **The receiver is a suite of instruments**, not a dial alone. Dial, waterfall spectrum analyzer, oscilloscope first. (Instruments.md)
+- **Confirmed (Nov 6):** **The receiver is a suite of instruments**, not a dial alone. Dial, spectrum analyzer, oscilloscope first. (Instruments.md) *The analyzer was a waterfall on Nov 6; as a display that was superseded Nov 12.*
 - **Confirmed (Nov 6):** **No transmission at launch.** The app stands on its own as a toy and a game; the first transmission is an in-world event. (Instruments §7)
 - **Confirmed (Nov 6):** **Static is generated on the phone**, not bounced from Logic. (Instruments §2)
 - **Confirmed:** Frequencies move around the band according to algorithms we design. → Now specified: three rules on a weekly rotation (Transmission Rules §3–4). Proposed: the same rules drive the interference before launch (Instruments §3).
@@ -48,10 +50,13 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 - **Confirmed:** **The Asunder's voice is gated.** Reachable only by computing her position from the state of the band. Mystique first; the band may open at a story beat.
 - **Confirmed (inherited):** Pirate-radio principle. Broadcasts run whether anyone listens; tuning joins something already underway. (Still true: the whole transmission is broadcasting before anyone finds it. Observation doesn't start it; it breaks it.)
 - **Confirmed (inherited):** The receiver is in the story's world, not a menu around it.
+- **Confirmed (Nov 7, restated Nov 12):** **The app looks like real hardware**: the Physicist's workbench, UAD-style. Black-and-white is for the website. (Color.md)
+- **Confirmed (Nov 12):** **The dial is a real-looking wheel you can see and spin forever. The analyzer is a real-world analog instrument.** (Instruments.md)
+- **Confirmed (Nov 12):** **Newest decision wins.** When the docs, the repo or an older decision disagree with something newer Evan has decided, the newer decision stands and the doc gets fixed.
 - **Proposed:** A minimal server whose only job is the observation ledger (§4). Everything else stays deterministic on the phone. Not built until the first transmission.
-- **Proposed:** Extend the existing "Asunder" Design System artifact rather than start a new one. See §7 and Color.md (amber retired in the app).
+- **Proposed (Nov 5; in question since Nov 7):** Extend the existing "Asunder" Design System artifact rather than start a new one. Its black-and-white ground now belongs to the website, so whether the app's hardware look joins it or gets its own system is Open (§7, Color.md). ~~Amber retired in the app.~~
 - **Proposed:** The oscilloscope's collection is the 26 Signs, as closed Lissajous figures (Instruments §6).
-- **Open:** Lock tolerance and dropout grace for a whole listen (§5). Device look vs abstract geometry (§7). Band range (§5). What the first observer is given (§5). Instruments open list (Instruments §9).
+- **Open:** Lock tolerance and dropout grace for a whole listen (§5). ~~Device look vs abstract geometry (§7).~~ Resolved Nov 7: device, real hardware. Band range (§5). What the first observer is given (§5). Instruments open list (Instruments §9).
 
 ---
 
@@ -61,7 +66,7 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 | --- | --- | --- |
 | Language | **Swift** | Apple's language. Clean, modern, and the only first-class way to reach the audio engine. |
 | Screens | **SwiftUI** | Describe what the screen should look like given its state; Apple redraws it. |
-| Audio | **AVAudioEngine** | A node graph: generators, players, filters, mixer, output. A modular rack in code. This is why we chose Swift. Also the noise generator and the FFT tap for the waterfall. |
+| Audio | **AVAudioEngine** | A node graph: generators, players, filters, mixer, output. A modular rack in code. This is why we chose Swift. Also the noise generator and the FFT tap for the analyzer. |
 | Haptics | **Core Haptics** | Custom vibration patterns: detent ticks, lock-on pulse, signal-lost flutter. |
 | Purchases | **StoreKit 2** | Apple's in-app purchase API. No third party needed. |
 | Files online | **Cloudflare R2** | Cheap object storage, no egress fees, account already connected. Audio and the manifest live here. |
@@ -98,7 +103,7 @@ Logic Pro ──bounce──> audio files + manifest.json ──upload──> Cl
          noise source ─┐
          feature oscillators ─┤
          station player ─ EQ ─┤─ mixer ─┬─ speaker
-         (gains driven by signal strength) └─ FFT tap → waterfall / scope
+         (gains driven by signal strength) └─ FFT tap → analyzer / scope
 ```
 
 **The shared clock.** Each transmission has a loop of fixed length. The app takes the real time (UTC), subtracts a fixed epoch, and takes the remainder against the loop length; that's the playhead. Two people on opposite coasts tuning the same frequency at the same second hear the same moment. Where a transmission *is* on the band, and *whether it's on*, come from the same clock through rules we write. Every phone computes the same band independently. The interference features (Instruments §3) run off the same clock and need no manifest and no server.
@@ -121,6 +126,7 @@ Logic Pro ──bounce──> audio files + manifest.json ──upload──> Cl
 ## 5. The receiver: dial and signal engine (first milestone)
 
 ### The dial
+- **Confirmed (Nov 12):** it looks like a real radio dial and you can see it: a wheel you spin forever. Its size and place on the bench are Open. (Instruments §0)
 - A band with a range (a real-looking FM band like 87.5–108.0, or an invented one). **Open.** The band is a loop (Confirmed Nov 6, Transmission Rules §8): a wheel with no end stop.
 - Rotation has **inertia and friction**: a flick spins and slows; a slow drag tracks the finger exactly.
 - **Detents**: subtle haptic ticks at regular intervals, with a different pulse when a signal locks.
@@ -199,16 +205,18 @@ The interference features are *not* content in this sense: they're code, not fil
 
 ## 7. Design system for the app (Proposed)
 
-Don't start a new one. The "Asunder" Design System artifact (Oct 22) already has the ground: black primary surface, the Seam, the 26 Signs, the Figures, Lora + Courier Prime, plate / transmission card / evidence block. **Color for the app is now in Color.md** (black-and-white ground, hue from the signal, amber retired in the app), superseding "story surface, amber allowed" for the app only.
+**Updated Nov 12.** The app's look was settled on Nov 7: real hardware, UAD-style (Color.md). What follows was written before that. The existing "Asunder" Design System artifact is built on a black-and-white ground, which now belongs to the website. Open: whether the app's hardware look is added to that artifact as a second surface or gets its own system. The Signs still matter to the app either way (Instruments §6).
+
+Don't start a new one. The "Asunder" Design System artifact (Oct 22) already has the ground: black primary surface, the Seam, the 26 Signs, the Figures, Lora + Courier Prime, plate / transmission card / evidence block. ~~**Color for the app is now in Color.md** (black-and-white ground, hue from the signal, amber retired in the app), superseding "story surface, amber allowed" for the app only.~~ Superseded Nov 7.
 
 What the system doesn't yet have, because it was built for screens you look at rather than a device you hold:
 
-- **Motion tokens:** dial friction, needle damping, settle time, lock-on snap; waterfall scroll; scope persistence.
+- **Motion tokens:** dial friction, needle damping, settle time, lock-on snap; analyzer sweep; scope persistence.
 - **Haptic tokens:** detent tick, lock pulse, signal-lost flutter, listen-timer reset, **the shatter**, the Still-day texture (if any).
 - **Sound tokens:** the static bed (generated; Instruments §2), detent click, the lock-on sound (candidate: the sound ident, the tone that parts and rejoins), **the shatter**.
-- **New components:** Dial, Scale/needle, Waterfall, Scope, Signal meter (spectrum or meter? **Open**), Now-receiving card (reuses transmission card), the Signs as signal marks and as Lissajous figures.
+- **New components:** Dial, Scale/needle, Analyzer, Scope, Signal meter (spectrum or meter? **Open**), Now-receiving card (reuses transmission card), the Signs as signal marks and as Lissajous figures.
 
-**Open: what does the receiver look like?** Two honest directions: a *device* (knobs, glass, a built-in-the-garage object, closer to what The Physicist cobbled together) or *abstract geometry* (Flatland plates, the Sign lattice, a dial that's a drawn figure). The brand kit leans geometric; the manuscript leans device. The suite-of-instruments decision leans device. Yours to call, worth a dedicated session.
+~~**Open: what does the receiver look like?**~~ **Resolved Nov 7: a device, drawn as real hardware** (Color.md). For the record, the two directions were a *device* (knobs, glass, a built-in-the-garage object, closer to what The Physicist cobbled together) or *abstract geometry* (Flatland plates, the Sign lattice, a dial that's a drawn figure). The brand kit leaned geometric; the manuscript and the suite-of-instruments decision leaned device.
 
 ---
 
@@ -228,8 +236,8 @@ What the system doesn't yet have, because it was built for screens you look at r
 | **0 — Setup** | Open questions in §2 settled enough to start. Apple Developer account, GitHub, Xcode installed. An empty SwiftUI app running on your iPhone. | 1 week |
 | **1 — Dial + static** | A dial with inertia, detents, haptics, needle, generated static with the clock-driven temperature, one carrier feature, playing in the background. No story. **Test: hand it to someone with no explanation; do they play with it for a minute?** | 3–4 weeks |
 | **2 — Weather** | The interference features (pulse, walker, breathers) on the shared clock, the three rules and the weekly rotation, Still days. The band is lawful and empty. | 2–3 weeks |
-| **3 — Waterfall + scope** | The FFT tap, the waterfall with its four knobs, the scope in both modes, Lissajous closure, Signs kept on the receiver. | 3–4 weeks |
-| **4 — Receiver shell** | Design system applied (Color.md). It looks and sounds like Asunder. **This is the launchable toy.** | 2–4 weeks |
+| **3 — Analyzer + scope** | The FFT tap, the analyzer with its knobs (and its history, if it keeps one: Instruments §4), the scope in both modes, Lissajous closure, Signs kept on the receiver. | 3–4 weeks |
+| **4 — Receiver shell** | The real-hardware look applied (Color.md), with Evan's artwork. It looks and sounds like Asunder. **This is the launchable toy.** | 2–4 weeks was estimated before the hardware look; the art is likely the longest job in the build (Claude, Nov 12) |
 | **5 — Ship v1** | TestFlight beta → App Review → launch. No transmissions. | 2–3 weeks |
 | **6 — Signal engine + pipeline** | Station playback, EQ thinning, the lock timer, the manifest, R2. Built while v1 is in the wild. | 2–3 weeks |
 | **7 — The first transmission** | Appears on the band as an event. Whole only. | — |
@@ -258,8 +266,8 @@ You have an edge: ten years of signal chains and sequencers. Audio routing is da
 
 ## 11. Open questions, in priority order
 
-1. Device look or abstract geometry? (Now leans device; needs its session.)
-2. Which instrument is on screen when the app opens; whether knob settings persist. (Instruments §9)
+1. ~~Device look or abstract geometry?~~ Resolved Nov 7: device, real hardware (Color.md). Left over: which real instruments the three are modeled on, and how much room each gets on the bench (Instruments §9).
+2. Whether knob settings persist. (Instruments §9) ~~Which instrument is on screen when the app opens.~~ Resolved Nov 6: the bench, all three.
 3. The 26 ratio/phase → Sign mapping. (Instruments §6)
 4. Real FM band or invented band?
 5. Lock tolerance and dropout grace for a whole listen; whether the chase grace is the same number. (Transmission Rules §7, §9) — matters at Phase 6+.
@@ -267,6 +275,7 @@ You have an edge: ten years of signal chains and sequencers. Audio routing is da
 7. Day-turn hour. (Transmission Rules §4)
 8. Does observing the Asunder cost anything? (Transmission Rules §6)
 9. Does the app acknowledge the community layer, or stay silent?
-10. Signal meter: spectrum display or simple meter? (Partly answered by the waterfall.)
+10. Signal meter: spectrum display or simple meter? (Partly answered by the analyzer.)
+11. Does the analyzer keep a history, on paper? Waits for Phase 3. (Instruments §4)
 
-Resolved since first draft: moving patterns for wholes (wholes sit at home; only fragments move); which patterns ship first (the three rules); fragment cuts (at marked boundaries); the band is a loop; what's good with ten listeners (the band is alive from the clock alone; see Instruments.md).
+Resolved since first draft: moving patterns for wholes (wholes sit at home; only fragments move); which patterns ship first (the three rules); fragment cuts (at marked boundaries); the band is a loop; what's good with ten listeners (the band is alive from the clock alone; see Instruments.md); the look (a device, real hardware; Nov 7).
