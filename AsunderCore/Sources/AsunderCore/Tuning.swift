@@ -67,4 +67,40 @@ public enum Tuning {
     /// 205 = one tick every 0.1 MHz on the placeholder FM band, about 10 points of
     /// finger travel at the gearing above. More = a fine buzz; fewer = chunky clicks.
     public static let detentsPerBand: Int = 205
+
+    // MARK: - Haptics: detent ticks
+
+    /// How hard each detent tick hits, 0...1. Lower = a whisper under the thumb.
+    public static let tickIntensity: Double = 0.45
+
+    /// How crisp each tick is, 0...1. High = a dry click; low = a soft bump.
+    public static let tickSharpness: Double = 0.85
+
+    /// The shortest gap allowed between ticks, in seconds. On a fast spin the
+    /// wheel crosses detents faster than this, and the extra ticks are dropped,
+    /// so a flick feels like a fine ratchet instead of a mushy buzz.
+    /// 0.015 = at most about 66 ticks a second.
+    public static let tickMinInterval: Double = 0.015
+
+    // MARK: - Haptics: the lock pulse
+
+    /// How strong a feature has to be (see Band.strength) before you feel the
+    /// "you're on it" pulse. 1 = dead center only; 0.85 = within about half a
+    /// bandwidth (about 4 points of thumb travel at the current gearing).
+    public static let lockOnStrength: Double = 0.85
+
+    /// How far the strength has to fall before the lock lets go and can pulse
+    /// again. Keeping this below lockOnStrength stops a thumb resting right at
+    /// the edge from stuttering pulses. Closer to lockOnStrength = twitchier.
+    public static let lockOffStrength: Double = 0.6
+
+    /// How hard the lock pulse hits, 0...1.
+    public static let lockPulseIntensity: Double = 1.0
+
+    /// How crisp the lock pulse is, 0...1. Kept low so it reads as a round
+    /// thump, clearly different from the sharp detent ticks.
+    public static let lockPulseSharpness: Double = 0.25
+
+    /// How long the lock pulse lasts, in seconds. Longer = heavier, more "clunk".
+    public static let lockPulseDuration: Double = 0.08
 }

@@ -25,7 +25,7 @@ Why the split: the rules every phone must compute identically (clock, wrap, week
    - Team: pick your Apple Developer account.
    - Bundle Identifier: change `com.example.asunder` to something you own, e.g. `com.yourname.asunder`.
 4. Plug in your iPhone, pick it as the run destination, press **⌘R**.
-   You should see a black screen with `ASUNDER` and `0.25` (that number proves the core package is linked). The black screen is a placeholder, not the design.
+   You should see a frequency readout, a scale with a needle, a signal meter, and a ridged wheel at the bottom. Roll the wheel with your thumb: you should feel a click per ridge, and a thump when you land on the Carrier (the meter fills). It's all placeholder drawing, not the design. Haptics only work on a real iPhone, not the Simulator.
 5. **⌘U** runs the AsunderCore tests.
 
 From the terminal, core tests also run with: `swift test --package-path AsunderCore`

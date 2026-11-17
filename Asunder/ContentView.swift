@@ -1,23 +1,37 @@
 import SwiftUI
 import AsunderCore
 
-/// Placeholder screen for Phase 0. It only proves three things:
-/// the app runs, it links AsunderCore, and the screen is grayscale.
-/// Phase 1 replaces this with the dial.
+/// Phase 1 bench: readout, scale, signal meter, and the thumbwheel.
+/// Plain placeholder layout. Where things sit and how big they are is Open,
+/// and the real look waits for Evan's art (Phase 4).
 struct ContentView: View {
+    @State private var dial = DialModel()
+
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-            VStack(spacing: 8) {
-                Text("ASUNDER")
-                    .font(.system(.title3, design: .monospaced))
-                    .foregroundStyle(.gray)
-                // Calls into AsunderCore; if this shows "0.25", the package is linked.
-                Text(String(format: "%.2f", wrapUnit(1.25)))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.gray.opacity(0.5))
+            Color(white: 0.08).ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                ReadoutPicture(text: dial.readout)
+
+                ScalePicture(needle: dial.physics.needlePosition, display: .placeholder)
+                    .frame(height: 28)
+
+                SignalMeterPicture(level: dial.signal, locked: dial.isLocked)
+                    .frame(height: 6)
+
+                Spacer()
+
+                ThumbwheelControl(model: dial)
+                    .frame(height: 72)
+                    .padding(.bottom, 32)
             }
+            .padding(.horizontal, 24)
         }
+        .onAppear { dial.start() }
+        .onDisappear { dial.stop() }
     }
 }
 
