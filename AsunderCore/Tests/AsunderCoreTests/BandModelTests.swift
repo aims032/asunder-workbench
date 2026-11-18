@@ -56,6 +56,13 @@ final class BandModelTests: XCTestCase {
         XCTAssertEqual(fm.label(at: BandPosition(1.0)), "87.5", "the top loops to the bottom")
     }
 
+    func testFMScaleMarks() {
+        let marks = FMBandDisplay().scaleMarks()
+        XCTAssertEqual(marks.count, 20)                       // 88 ... 107
+        XCTAssertEqual(marks.compactMap(\.label), ["88", "92", "96", "100", "104"])
+        XCTAssertEqual(FMBandDisplay().label(at: marks[0].position), "88.0")
+    }
+
     func testOneDetentIsOneTenth() {
         let fm = FMBandDisplay()
         let a = fm.frequency(at: BandPosition(0.3))

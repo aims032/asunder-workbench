@@ -54,6 +54,14 @@ public protocol BandDisplay {
     func frequency(at position: BandPosition) -> Double
     /// That number as the readout shows it, e.g. "98.1".
     func label(at position: BandPosition) -> String
+    /// Marks printed on the dial's scale. A label is nil for an unnumbered tick.
+    func scaleMarks() -> [ScaleMark]
+}
+
+/// One mark on the printed scale.
+public struct ScaleMark {
+    public let position: BandPosition
+    public let label: String?
 }
 
 /// PLACEHOLDER: an FM-looking band, 87.5 to 108.0.
@@ -73,6 +81,15 @@ public struct FMBandDisplay: BandDisplay {
         // String(format:) so it's identical on every platform.
         let tenths = Int((frequency(at: position) * 10).rounded())
         return "\(tenths / 10).\(tenths % 10)"
+    }
+
+    /// A tick at every whole number (88 ... 107), numbered every 4 (88, 92 ... 104).
+    /// 108 is skipped: it's the same spot as 87.5, where the loop joins.
+    public func scaleMarks() -> [ScaleMark] {
+        (88...107).map { mhz in
+            ScaleMark(position: BandPosition((Double(mhz) - bottom) / (top - bottom)),
+                      label: mhz % 4 == 0 ? "\(mhz)" : nil)
+        }
     }
 }
 
