@@ -10,9 +10,10 @@ import Foundation
 /// Position 0 reads the bottom frequency. Going up, the number multiplies by
 /// the same amount for every step, and past the top it loops back to the bottom.
 public struct SpectrumDisplay: BandDisplay {
-    /// The ends of the band, in Hz. PLACEHOLDERS: Evan chose "radio through
-    /// light"; the exact ends are still to settle. 3 kHz is the bottom of radio;
-    /// 1,000 THz is just past violet light.
+    /// The ends of the band, in Hz. Evan chose "radio through light" and
+    /// decided the top stops at light, not the string (Planck) scale. The exact
+    /// numbers are PLACEHOLDERS: 3 kHz is the bottom of radio; 1,000 THz is
+    /// just past violet light.
     public var bottomHz: Double = 3e3
     public var topHz: Double = 1e15
 

@@ -2,7 +2,7 @@
 
 Started Nov 6, 2026. What the app is before the first transmission, and the suite of instruments the Physicist cobbled together to see past the veil. Status tags: **Confirmed** (Evan decided), **Proposed** (Claude's recommendation), **Open**.
 
-Updated in the repo Nov 12, 2026: the look, the dial and the analyzer (decisions 13–17). Where an older entry says "waterfall", read "the analyzer". Updated Nov 19, 2026: how the static and the Carrier sound (decisions 18–20).
+Updated in the repo Nov 12, 2026: the look, the dial and the analyzer (decisions 13–17). Where an older entry says "waterfall", read "the analyzer". Updated Nov 19, 2026: how the static and the Carrier sound (decisions 18–20), and the wide band (decision 21).
 
 Decisions from the Nov 6 session:
 1. **Confirmed:** No transmission at launch. The first transmission is an **event**, not a feature. The app has to stand on its own before it, as a toy and a game.
@@ -31,6 +31,8 @@ Decisions from Nov 19 (Phase 1 sound). Newest wins.
 18. **Confirmed (Nov 19):** **Noise temperature reads as physics**, not studio talk. Hot = more energy = brighter: moving days hiss more and sound restless. Cold = Still days: the hiss drains out and leaves a lower, darker, quieter rumble. (§2)
 19. **Confirmed (Nov 19):** **The Carrier is heard as a zero-beat whistle**, the way a shortwave set sounds: off to the side a whistle, its pitch sliding down as you tune toward center, settling to a low hum dead on. Strength still follows the bell curve. Refines "a faint, steady line" (§3) for the ear; on the analyzer it is still one steady line.
 20. **Confirmed (Nov 19):** **The Carrier's day-turn kink is a dropout.** At every day turn it cuts out for a second or two, then comes back, on every phone at the same moment. Length is Proposed (1.5 s). (§3)
+21. **Confirmed (Nov 19):** **The band is a wide spectrum, from radio up through infrared and visible light**, the bench Evan envisions for the Physicist and Hannah. Numbers are log-spaced, so every tenfold gets equal room, the way wideband analyzers draw it. One wheel with many more notches, not a band switch. The top stops at light: Evan chose not to stretch it to the string (Planck) scale, "it would already be too much to go that far." Exact ends are placeholders (3 kHz to 1,000 THz).
+   - *Physics hygiene (Claude, Nov 19):* strings vibrate around 10⁴³ Hz, far past anything a bench can receive. The band is what the Physicist's equipment can hear, not what the Asunder is made of; strings stay his theory of the place (Theoretical Concepts). **Proposed:** the vibration idea lives on the bench in ratios, the simple ratios that close a figure on the scope and set the Breathers' rhythms (§5, §6), not in the band's range.
 
 ---
 
