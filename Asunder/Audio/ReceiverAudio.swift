@@ -3,10 +3,15 @@ import os
 import AsunderCore
 
 /// The radio's sound. Plugs AsunderCore's ReceiverChain (static + Carrier
-/// through the EQ path) into the phone's audio system and keeps it playing:
-/// with the screen off, after a phone call, and when headphones come and go.
+/// through the EQ path) into the phone's audio system and keeps it playing
+/// with the screen off and after a phone call.
 ///
 ///     ReceiverChain ─► source node ─► main mixer ─► speaker / headphones
+///
+/// On and off, for now (a real power switch comes with the Phase 4 look):
+///   ON:  opening the app, touching the dial, or play on the lock screen/AirPods.
+///   OFF: pause on the lock screen/AirPods, or headphones coming out (so the
+///        static never jumps to the speaker from a pocket; Apple's rule too).
 ///
 /// The main thread only ever does one thing to it while it plays: tell it where
 /// the dial is (`tune(to:)`). Everything else (the clock, the temperature, the
@@ -20,6 +25,9 @@ final class ReceiverAudio {
     /// Where the dial is. Written on the main thread, read on the audio thread.
     private let dial = OSAllocatedUnfairLock(initialState: 0.5)
     private let clock = AsunderClock()
+    /// Whether the radio is meant to be on (see the list above).
+    private var wantsToPlay = true
+    private var controls: RadioControls?
 
     init() {
         let center = NotificationCenter.default
@@ -29,6 +37,12 @@ final class ReceiverAudio {
                            name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
         center.addObserver(self, selector: #selector(engineConfigurationChanged),
                            name: .AVAudioEngineConfigurationChange, object: nil)
+        center.addObserver(self, selector: #selector(routeChanged),
+                           name: AVAudioSession.routeChangeNotification, object: nil)
+        controls = RadioControls(
+            turnOn: { [weak self] in DispatchQueue.main.async { self?.turnOn() } },
+            turnOff: { [weak self] in DispatchQueue.main.async { self?.turnOff() } },
+            isOn: { [weak self] in self?.engine.isRunning ?? false })
     }
 
     deinit {
@@ -43,17 +57,50 @@ final class ReceiverAudio {
         dial.withLock { $0 = position }
     }
 
-    /// Turn the radio on. Safe to call any time; does nothing if it's already playing.
-    func start() {
-        guard !engine.isRunning else { return }
+    /// Turn the radio on, on purpose (touching the dial, the play button).
+    /// Safe to call any time; does nothing if it's already playing.
+    func turnOn() {
+        wantsToPlay = true
+        resume()
+    }
+
+    /// Turn the radio off, on purpose (the pause button, headphones coming out).
+    func turnOff() {
+        wantsToPlay = false
+        engine.pause()
+        controls?.show(isOn: false)
+        // Hand the speaker back, so whatever another app paused for us can carry on.
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    /// The app came to the front: play if the radio is meant to be on.
+    /// (If it was turned off on purpose, it stays off until the dial is touched.)
+    func resumeIfOn() {
+        resume()
+    }
+
+    /// Play, if the radio is meant to be on and isn't already.
+    /// Returns false if iOS said no (e.g. a phone call has the speaker).
+    @discardableResult
+    private func resume() -> Bool {
+        guard wantsToPlay, !engine.isRunning else { return true }
         do {
             try configureSession()
-            if source == nil { buildGraph() }
+            if source == nil {
+                buildGraph()
+            } else {
+                // Coming back after a pause or a call: fade in, don't thump.
+                // Safe: the engine is stopped, so the audio thread isn't using it.
+                render?.pointee.chain.restartFade()
+            }
             try engine.start()
+            controls?.show(isOn: true)
+            return true
         } catch {
-            // No sound is better than a crash. The next start() (e.g. when the
-            // app comes back to the front) tries again.
+            // No sound is better than a crash. Touching the dial or bringing
+            // the app back to the front tries again.
             print("ReceiverAudio: couldn't start: \(error)")
+            return false
         }
     }
 
@@ -133,7 +180,7 @@ final class ReceiverAudio {
     private func rebuild() {
         tearDownGraph()
         engine = AVAudioEngine()
-        start()
+        resume()
     }
 
     // MARK: Things that happen to a radio
@@ -146,8 +193,31 @@ final class ReceiverAudio {
               AVAudioSession.InterruptionType(rawValue: rawType) == .ended else { return }
         let rawOptions = info[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
         guard AVAudioSession.InterruptionOptions(rawValue: rawOptions).contains(.shouldResume) else { return }
-        DispatchQueue.main.async { self.start() }
+        DispatchQueue.main.async {
+            // Right as a call ends, the phone app may not have let go of the
+            // speaker yet. If iOS says no, try once more a second later.
+            if !self.resume() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.resume() }
+            }
+        }
     }
+
+    /// Headphones unplugged or Bluetooth headphones gone: turn off rather than
+    /// carry on through the speaker. Touch the dial or press play to turn back on.
+    @objc private func routeChanged(_ note: Notification) {
+        guard let info = note.userInfo,
+              let rawReason = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              AVAudioSession.RouteChangeReason(rawValue: rawReason) == .oldDeviceUnavailable,
+              let previous = info[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription,
+              previous.outputs.contains(where: { Self.headphoneOutputs.contains($0.portType) })
+        else { return }
+        DispatchQueue.main.async { self.turnOff() }
+    }
+
+    /// Outputs that only the listener hears.
+    private static let headphoneOutputs: Set<AVAudioSession.Port> = [
+        .headphones, .bluetoothA2DP, .bluetoothHFP, .bluetoothLE, .usbAudio,
+    ]
 
     /// The output changed in a way the engine can't follow (Bluetooth connected,
     /// a new sample rate). The engine has stopped itself; rebuild for the new output.

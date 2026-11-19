@@ -41,9 +41,11 @@ public struct NoiseRandom {
     }
 }
 
-/// Makes all three colors at once from one white noise stream.
-/// Each color comes out at about the same loudness (RMS ~0.3), so the
-/// temperature weights alone decide the mix.
+/// Makes all three colors at once. Each color is filtered from its own fresh
+/// random numbers, so the three are independent of each other (if they shared
+/// one stream they'd partly move together and the mix would come out louder
+/// than its `level` says). Each comes out at about the same loudness
+/// (RMS ~0.3), so the temperature weights alone decide the mix.
 public struct NoiseSource {
     private var random: NoiseRandom
 
@@ -68,19 +70,21 @@ public struct NoiseSource {
 
     /// The next sample of each color.
     public mutating func next() -> (white: Double, pink: Double, brown: Double) {
-        let w = random.nextSigned()
+        let w = random.nextSigned()   // for white
+        let p = random.nextSigned()   // for pink
+        let b = random.nextSigned()   // for brown
 
-        b0 = 0.99886 * b0 + w * 0.0555179
-        b1 = 0.99332 * b1 + w * 0.0750759
-        b2 = 0.96900 * b2 + w * 0.1538520
-        b3 = 0.86650 * b3 + w * 0.3104856
-        b4 = 0.55000 * b4 + w * 0.5329522
-        b5 = -0.7616 * b5 - w * 0.0168980
-        let pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362
-        b6 = w * 0.115926
+        b0 = 0.99886 * b0 + p * 0.0555179
+        b1 = 0.99332 * b1 + p * 0.0750759
+        b2 = 0.96900 * b2 + p * 0.1538520
+        b3 = 0.86650 * b3 + p * 0.3104856
+        b4 = 0.55000 * b4 + p * 0.5329522
+        b5 = -0.7616 * b5 - p * 0.0168980
+        let pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + p * 0.5362
+        b6 = p * 0.115926
 
         // Brown: each sample is mostly the last one plus a little new noise.
-        brownState = Self.brownMemory * brownState + w * 0.1
+        brownState = Self.brownMemory * brownState + b * 0.1
 
         return (w * Self.whiteScale, pink * Self.pinkScale, brownState * Self.brownScale)
     }
@@ -105,6 +109,8 @@ public struct NoiseColor: Equatable {
     /// How loud each color plays. The weights only set the color: they're
     /// rescaled so the mix is equally loud whatever they are, and `level` alone
     /// sets how loud it is. (0.5, 0.5, 0) and (1, 1, 0) sound the same.
+    /// (Exact because the three colors are independent: independent noises
+    /// add by power, so dividing by the square root of the summed squares works.)
     public var gains: (white: Double, pink: Double, brown: Double) {
         let power = (white * white + pink * pink + brown * brown).squareRoot()
         guard power > 0 else { return (0, 0, 0) }

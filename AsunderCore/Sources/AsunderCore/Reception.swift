@@ -12,14 +12,15 @@ import Foundation
 public enum NoiseTemperature {
 
     /// Right after each day turn it glides from yesterday's temperature to
-    /// today's over Tuning.temperatureGlide seconds.
+    /// today's over World.temperatureGlideSeconds.
     public static func at(_ date: Date, clock: AsunderClock) -> Double {
         let today = temperature(of: clock.rule(at: date))
         let secondsIn = clock.secondsIntoDay(at: date)
-        guard Tuning.temperatureGlide > 0, secondsIn < Tuning.temperatureGlide else { return today }
+        let glide = World.temperatureGlideSeconds
+        guard glide > 0, secondsIn < glide else { return today }
 
         let yesterday = temperature(of: clock.rule(at: date.addingTimeInterval(-AsunderClock.secondsPerDay)))
-        let t = secondsIn / Tuning.temperatureGlide
+        let t = secondsIn / glide
         let eased = t * t * (3 - 2 * t)  // starts and ends gently (a "smoothstep")
         return yesterday + (today - yesterday) * eased
     }
@@ -79,8 +80,12 @@ public enum Reception {
         let highpass = blendHz(Tuning.closedHighpassHz, Tuning.openHighpassHz, clarity)
         let lowpass = blendHz(Tuning.closedLowpassHz, Tuning.openLowpassHz, clarity)
 
+        // Phone speakers barely play low notes, so dead on, where the whistle
+        // has slid down to the hum, it gets a lift to stay the loudest point.
+        let humLift = 1 + Tuning.humBoost * clarity
+
         return ReceiverTargets(white: gains.white, pink: gains.pink, brown: gains.brown,
-                               carrierLevel: Tuning.carrierVolume * strength,
+                               carrierLevel: Tuning.carrierVolume * strength * humLift,
                                carrierPitch: Carrier.pitch(detentsAway: detents),
                                highpassHz: highpass, lowpassHz: lowpass)
     }

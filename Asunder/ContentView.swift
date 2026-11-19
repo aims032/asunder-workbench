@@ -44,8 +44,9 @@ struct ContentView: View {
         }
         // The radio turns on when the app opens, and comes back on if something
         // (a call, another app's audio) stopped it while the app was away.
+        // If it was turned off on purpose, it stays off until the dial is touched.
         .onChange(of: scenePhase, initial: true) { _, phase in
-            if phase == .active { bench.audio.start() }
+            if phase == .active { bench.audio.resumeIfOn() }
         }
     }
 

@@ -15,6 +15,16 @@ final class ReceiverChainTests: XCTestCase {
         return chain.render(count: Int(2 * testSampleRate), targets: t)
     }
 
+    /// The same, with the Carrier muted: the static alone, still through the
+    /// EQ path exactly as it's set at that dial position.
+    func listenToStatic(_ dial: Double, _ date: Date = movingMidday) -> [Float] {
+        var chain = ReceiverChain(sampleRate: testSampleRate, seed: 11)
+        var t = Reception.targets(dial: dial, at: date, clock: clock)
+        t.carrierLevel = 0
+        _ = chain.render(count: Int(testSampleRate), targets: t)
+        return chain.render(count: Int(2 * testSampleRate), targets: t)
+    }
+
     // MARK: Deterministic
 
     func testSameSeedSameSound() {
@@ -44,6 +54,14 @@ final class ReceiverChainTests: XCTestCase {
         XCTAssertGreaterThan(rms(chain.render(count: 48_000, targets: t)), 0.05)
     }
 
+    func testRestartFadeFadesInAgain() {
+        var chain = ReceiverChain(sampleRate: testSampleRate, seed: 2)
+        let t = Reception.targets(dial: farAway, at: movingMidday, clock: clock)
+        _ = chain.render(count: Int(2 * testSampleRate), targets: t)
+        chain.restartFade()
+        XCTAssertLessThan(peak(chain.render(count: 480, targets: t)), 0.02)
+    }
+
     // MARK: Levels
 
     func testNeverClipsAtTheDefaultSettings() {
@@ -71,6 +89,21 @@ final class ReceiverChainTests: XCTestCase {
         XCTAssertGreaterThan(bandLevel(on, at: Tuning.humHz, q: 8), 3 * bandLevel(off, at: Tuning.humHz, q: 8))
     }
 
+    /// Through a phone speaker (which drops everything below ~250 Hz), dead on
+    /// must not sound quieter than one notch off: the arrival is a peak, not a dip.
+    func testOnAPhoneSpeakerTheCenterIsNotADip() {
+        func carrierOnSpeaker(_ dial: Double) -> Double {
+            var chain = ReceiverChain(sampleRate: testSampleRate, seed: 1)
+            var t = Reception.targets(dial: dial, at: movingMidday, clock: clock)
+            t.white = 0; t.pink = 0; t.brown = 0           // the tone alone
+            _ = chain.render(count: 24_000, targets: t)
+            return rms(speaker(chain.render(count: 96_000, targets: t)))
+        }
+        let center = carrierOnSpeaker(center)
+        let oneOff = carrierOnSpeaker(center + Tuning.detentSpacing)
+        XCTAssertGreaterThan(decibels(center / oneOff), -1.5)
+    }
+
     func testTheWhistleIsHeardOneNotchOff() {
         let whistle = Tuning.humHz + Tuning.whistleHzPerDetent
         let near = listen(center + Tuning.detentSpacing).map(Double.init)
@@ -80,13 +113,22 @@ final class ReceiverChainTests: XCTestCase {
 
     /// Off-station the EQ path is closed, so the static is dull up top.
     /// Dead on, it opens: the highs (8 kHz) come up against the mids (1 kHz).
-    /// Both bands are pure static; the Carrier's hum is far below them.
-    func testStaticIsThinOffStationAndOpensOnTheCarrier() {
+    func testStaticIsDullOffStationAndOpensOnTheCarrier() {
         func highsOverMids(_ s: [Float]) -> Double {
             let d = s.map(Double.init)
             return bandLevel(d, at: 8_000) / bandLevel(d, at: 1_000)
         }
-        XCTAssertGreaterThan(highsOverMids(listen(center)), 2 * highsOverMids(listen(farAway)))
+        XCTAssertGreaterThan(highsOverMids(listenToStatic(center)), 2 * highsOverMids(listenToStatic(farAway)))
+    }
+
+    /// The high-pass half: off-station the lows are cut (thin, on headphones).
+    func testStaticIsThinOffStationAndOpensOnTheCarrier() {
+        func lowsOverMids(_ s: [Float]) -> Double {
+            let d = s.map(Double.init)
+            return bandLevel(d, at: 70) / bandLevel(d, at: 1_000)
+        }
+        XCTAssertGreaterThan(lowsOverMids(listenToStatic(center, stillMidday)),
+                             2 * lowsOverMids(listenToStatic(farAway, stillMidday)))
     }
 
     func testExtremeTargetsStayFinite() {

@@ -8,10 +8,10 @@ import AsunderCore
 /// Strength and sharpness live in Tuning.swift. If the phone has no haptic
 /// motor (or it fails to start), every call quietly does nothing.
 final class Haptics {
-    /// The tick comes in a few strengths, as shares of Tuning.tickIntensity.
-    /// Fast spins use the softer ones. They're built once up front, because
-    /// making a new haptic pattern for every one of 45 ticks a second is wasteful.
-    private static let tickStrengths: [Float] = [1.0, 0.75, 0.5, 0.3]
+    /// The tick comes in a few strengths (Tuning.tickStrengthSteps). Fast spins
+    /// use the softer ones. They're built once up front, because making a new
+    /// haptic pattern for every one of 45 ticks a second is wasteful.
+    private static var tickStrengths: [Float] { Tuning.tickStrengthSteps }
 
     private var engine: CHHapticEngine?
     /// One ready-made tick per entry in `tickStrengths`, same order.

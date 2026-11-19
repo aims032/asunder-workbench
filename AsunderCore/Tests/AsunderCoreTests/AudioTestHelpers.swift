@@ -27,6 +27,15 @@ func bandLevel(_ samples: [Double], at hz: Double, q: Double = 1.4) -> Double {
     return rms(settled)
 }
 
+/// A rough iPhone speaker: everything below ~250 Hz rolls off steeply
+/// (two high-pass filters in a row, 24 dB per octave).
+func speaker(_ samples: [Float]) -> [Double] {
+    var a = StateVariableFilter(), b = StateVariableFilter()
+    a.setCutoff(250, resonance: 0.707, sampleRate: testSampleRate)
+    b.setCutoff(250, resonance: 0.707, sampleRate: testSampleRate)
+    return samples.map { b.process(a.process(Double($0)).high).high }
+}
+
 /// A brightness measure: 0 for very dull sounds, ~1 for white noise.
 /// (One minus how alike each sample is to the one before it.)
 func brightness(_ samples: [Float]) -> Double {

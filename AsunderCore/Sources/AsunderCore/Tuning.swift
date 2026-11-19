@@ -15,6 +15,10 @@ public enum Tuning {
     /// 1/205 is one tick per 0.1 on the FM-looking display (20.5 wide / 0.1).
     /// Smaller = more ticks per lap, a finer and busier feel.
     /// Bigger = fewer, chunkier clicks.
+    /// CAREFUL: the Carrier (World.carrierPosition = 68/205) must sit exactly on
+    /// a notch, or the wheel can never settle dead on it (a test checks). Only
+    /// spacings of 1/205, 1/410, 1/615... keep it there. Any other value means
+    /// moving the Carrier too, and that changes the shared world.
     public static let detentSpacing: Double = 1.0 / 205.0
 
     // MARK: Dial: the hand
@@ -83,6 +87,12 @@ public enum Tuning {
     /// Bigger = every tick stays firm even at full spin.
     public static let tickSoftenSpeed: Double = 60
 
+    /// The tick strengths the phone has ready, as shares of tickIntensity,
+    /// firmest first. Each tick plays whichever is closest to what the spin speed
+    /// asks for. The last one is the softest a fast spin can get, however low
+    /// tickSoftenSpeed is set. Add a smaller entry (e.g. 0.15) to let flicks fade further.
+    public static let tickStrengthSteps: [Float] = [1.0, 0.75, 0.5, 0.3]
+
     /// The "centered on a feature" pulse. Strength 0...1, sharpness 0...1, and
     /// length in seconds. It should feel clearly different from a tick:
     /// rounder and longer. (Nov 19: strength down from 1.0 to match the softer ticks.)
@@ -116,10 +126,8 @@ public enum Tuning {
     /// quiet rumble. Lower `level` = a quieter Still day.
     public static let coldStatic = NoiseColor(white: 0.06, pink: 0.30, brown: 0.70, level: 0.55)
 
-    /// At a day turn the static glides from yesterday's temperature to today's
-    /// over this many seconds. 0 = it snaps at the turn. Bigger = a slow change
-    /// you notice only if you're listening for it.
-    public static let temperatureGlide: Double = 30
+    // (How long the static takes to glide from hot to cold at a day turn is in
+    // World.swift, because every phone should shift at the same moment.)
 
     // MARK: Sound: the receiver's EQ path
     //
@@ -128,7 +136,12 @@ public enum Tuning {
     // a radio between stations). Dead on a feature it OPENS (full and wide).
 
     /// Lowest frequency let through when closed / open, in Hz.
-    /// Bigger closed value = thinner, more "small speaker" static off-station.
+    /// Bigger closed value = thinner static off-station. Heads up: this only
+    /// changes things below about 200 Hz, which headphones play and the
+    /// iPhone's speaker mostly doesn't. On the speaker, "closed" is heard as
+    /// duller (the low-pass below), not thinner. To hear thin on the speaker,
+    /// the closed value would need to be 300-500 Hz, which also thins out the
+    /// Still-day rumble.
     public static let closedHighpassHz: Double = 140
     public static let openHighpassHz: Double = 45
 
@@ -166,14 +179,22 @@ public enum Tuning {
     public static let whistleHzPerDetent: Double = 350
 
     /// The pitch the whistle settles to dead on center: the low hum, in Hz.
-    /// iPhone speakers barely play below ~200 Hz, so the hum is mostly heard
-    /// through its harmonics there; on headphones you get the fundamental too.
-    public static let humHz: Double = 110
+    /// iPhone speakers barely play below ~200 Hz, so on the speaker you mostly
+    /// hear the hum through its overtones; on headphones, the note itself too.
+    /// (Nov 19: up from 110, which all but vanished on the speaker.)
+    public static let humHz: Double = 165
 
     /// Overtones on the Carrier's tone, 0...1 each: 2nd and 3rd harmonic.
-    /// 0 and 0 = a pure sine. More = buzzier, and easier to hear on a phone speaker.
-    public static let carrierSecondHarmonic: Double = 0.25
-    public static let carrierThirdHarmonic: Double = 0.12
+    /// 0 and 0 = a pure sine. More = buzzier, more like mains hum, and easier
+    /// to hear on a phone speaker. These carry the hum on the speaker.
+    public static let carrierSecondHarmonic: Double = 0.8
+    public static let carrierThirdHarmonic: Double = 0.5
+
+    /// Extra loudness for the hum dead on center, on top of the bell curve.
+    /// 0.6 = 60% louder. Without it, a phone speaker makes the center sound
+    /// quieter than one notch off (low notes don't come through), so the
+    /// "arrival" would feel like a dip. 0 = follow the bell curve exactly.
+    public static let humBoost: Double = 0.6
 
     // MARK: Sound: response
 

@@ -43,7 +43,7 @@ Build:
    P = [W, L, S, R, W, S, L]      // S = Still day
    rule(k, w) = P[(k + 3w) mod 7] // k = day of week (0 = Sunday, UTC), w = weeks since epoch
    ```
-6. **One Carrier feature.** A faint ~~steady~~ tone at a fixed position that never moves, with a kink at every day turn (Instruments §3). Its strength is a bell curve on the distance from the dial to center. Confirmed Nov 19: it's heard as a zero-beat whistle (pitch slides down as you tune in, a low hum dead on), and the kink is a dropout of a second or two.
+6. **One Carrier feature.** A faint, steady tone at a fixed position that never moves, with a kink at every day turn (Instruments §3). Its strength is a bell curve on the distance from the dial to center. Confirmed Nov 19: it's heard as a zero-beat whistle (pitch slides down as you tune in, a low hum dead on), and the kink is a dropout of a second or two.
 7. **Background audio.** Declare the audio background mode so it keeps playing with the screen off. Test it as a radio, not a toy.
 
 Out of scope for Phase 1: the analyzer, scope and terminal (Phases 3+), the finished look (Phase 4; Phase 1 screens are plain placeholders, see Look above), transmissions, the Shatter, the server, and login (there is none, Confirmed).

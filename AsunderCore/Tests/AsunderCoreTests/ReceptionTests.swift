@@ -25,8 +25,8 @@ final class ReceptionTests: XCTestCase {
         let turn = movingToStillTurn
         XCTAssertEqual(NoiseTemperature.at(turn.addingTimeInterval(-1), clock: clock), 1, "still hot before the turn")
         XCTAssertEqual(NoiseTemperature.at(turn, clock: clock), 1, accuracy: 1e-9, "the glide starts at yesterday's")
-        XCTAssertEqual(NoiseTemperature.at(turn.addingTimeInterval(Tuning.temperatureGlide / 2), clock: clock), 0.5, accuracy: 1e-9)
-        XCTAssertEqual(NoiseTemperature.at(turn.addingTimeInterval(Tuning.temperatureGlide), clock: clock), 0)
+        XCTAssertEqual(NoiseTemperature.at(turn.addingTimeInterval(World.temperatureGlideSeconds / 2), clock: clock), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(NoiseTemperature.at(turn.addingTimeInterval(World.temperatureGlideSeconds), clock: clock), 0)
     }
 
     func testStillDayStaticIsQuieterAndDarker() {
@@ -47,7 +47,7 @@ final class ReceptionTests: XCTestCase {
 
     func testDeadOnTheCarrierTheEQOpensAndTheHissQuiets() {
         let on = targets(center), off = targets(farAway)
-        XCTAssertEqual(on.carrierLevel, Tuning.carrierVolume, accuracy: 1e-9)
+        XCTAssertEqual(on.carrierLevel, Tuning.carrierVolume * (1 + Tuning.humBoost), accuracy: 1e-9)
         XCTAssertEqual(on.carrierPitch, Tuning.humHz, accuracy: 1e-9)
         XCTAssertEqual(on.highpassHz, Tuning.openHighpassHz, accuracy: 0.01)
         XCTAssertEqual(on.lowpassHz, Tuning.openLowpassHz, accuracy: 0.01)
@@ -81,7 +81,24 @@ final class ReceptionTests: XCTestCase {
         XCTAssertEqual(during.carrierLevel, 0)
         XCTAssertEqual(during.lowpassHz, Tuning.closedLowpassHz, accuracy: 0.01)
         let after = targets(center, turn.addingTimeInterval(World.carrierDropoutSeconds + 0.5))
-        XCTAssertEqual(after.carrierLevel, Tuning.carrierVolume, accuracy: 1e-9)
+        XCTAssertEqual(after.carrierLevel, Tuning.carrierVolume * (1 + Tuning.humBoost), accuracy: 1e-9)
+    }
+
+    /// The day-turn hour is Open. If it moves, the dropout and the glide must
+    /// follow the turn, not UTC midnight.
+    func testDropoutAndGlideFollowAMovedDayTurn() {
+        let late = AsunderClock(dayTurnHourUTC: 5)
+        let midnight = utc("2026-11-18 00:00:00")
+        let turn = utc("2026-11-18 05:00:00")
+        XCTAssertEqual(late.secondsIntoDay(at: turn), 0, accuracy: 1e-6)
+        XCTAssertTrue(Carrier.isOnAir(at: midnight.addingTimeInterval(0.5), clock: late), "midnight is nothing special")
+        XCTAssertFalse(Carrier.isOnAir(at: turn.addingTimeInterval(0.5), clock: late))
+
+        // Monday (L) into Tuesday (S), at 05:00 instead of 00:00.
+        let stillTurn = utc("2026-11-03 05:00:00")
+        XCTAssertEqual(NoiseTemperature.at(stillTurn.addingTimeInterval(-1), clock: late), 1)
+        XCTAssertEqual(NoiseTemperature.at(stillTurn.addingTimeInterval(World.temperatureGlideSeconds / 2), clock: late),
+                       0.5, accuracy: 1e-9)
     }
 
     // MARK: Helpers

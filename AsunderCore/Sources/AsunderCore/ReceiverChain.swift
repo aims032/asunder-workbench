@@ -54,6 +54,12 @@ public struct ReceiverChain {
         power = Smoothed(0, seconds: Tuning.powerOnFade, sampleRate: sampleRate)
     }
 
+    /// Fade in again from silence, as when it first turned on. Call this when the
+    /// radio comes back after a pause or a phone call (never while it's playing).
+    public mutating func restartFade() {
+        power = Smoothed(0, seconds: Tuning.powerOnFade, sampleRate: sampleRate)
+    }
+
     /// Fill `out` with `count` samples, gliding toward `targets`.
     public mutating func render(into out: UnsafeMutablePointer<Float>, count: Int, targets: ReceiverTargets) {
         for i in 0..<count {

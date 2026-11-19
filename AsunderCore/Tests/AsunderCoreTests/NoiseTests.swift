@@ -77,11 +77,24 @@ final class NoiseTests: XCTestCase {
         XCTAssertEqual(a.pink, b.pink, accuracy: 1e-12)
     }
 
+    /// Mix real noise with the gains and measure it: whatever the weights, the
+    /// result is about as loud as one color at `level` (RMS 0.3 x level).
     func testLevelAloneSetsLoudness() {
-        // Independent noises add by power, so the gains' power is the level squared.
-        let g = NoiseColor(white: 3, pink: 1, brown: 2, level: 0.4).gains
-        let power = (g.white * g.white + g.pink * g.pink + g.brown * g.brown).squareRoot()
-        XCTAssertEqual(power, 0.4, accuracy: 1e-12)
+        let c = makeColors(count: 240_000)
+        for weights in [(1.0, 0.0, 0.0), (0.0, 1.0, 1.0), (3.0, 1.0, 2.0), (0.06, 0.3, 0.7)] {
+            let g = NoiseColor(white: weights.0, pink: weights.1, brown: weights.2, level: 0.5).gains
+            let mix = c.white.indices.map { g.white * c.white[$0] + g.pink * c.pink[$0] + g.brown * c.brown[$0] }
+            XCTAssertEqual(decibels(rms(mix) / (0.3 * 0.5)), 0, accuracy: 0.6, "\(weights)")
+        }
+    }
+
+    func testTheColorsAreIndependent() {
+        let c = makeColors(count: 240_000)
+        func correlation(_ a: [Double], _ b: [Double]) -> Double {
+            zip(a, b).reduce(0) { $0 + $1.0 * $1.1 } / (rms(a) * rms(b) * Double(a.count))
+        }
+        XCTAssertEqual(correlation(c.white, c.pink), 0, accuracy: 0.03)
+        XCTAssertEqual(correlation(c.pink, c.brown), 0, accuracy: 0.05)
     }
 
     func testAllZeroWeightsIsSilence() {

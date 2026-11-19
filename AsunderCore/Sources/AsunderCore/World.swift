@@ -51,4 +51,13 @@ public enum World {
     /// back: its "kink" (Confirmed Nov 19: the kink is a dropout).
     /// PROPOSED length; how long is still a choice.
     public static let carrierDropoutSeconds: Double = 1.5
+
+    // MARK: The static (Instruments §2)
+
+    /// At each day turn the static glides from yesterday's temperature to
+    /// today's over this many seconds (0 = it snaps at the turn). It's here and
+    /// not in Tuning because every phone should shift at the same moment: it's
+    /// the "shift in the floor" a listener can hear, and later see on the analyzer.
+    /// PROPOSED: about half a minute.
+    public static let temperatureGlideSeconds: Double = 30
 }
