@@ -2,14 +2,20 @@ import CoreHaptics
 import AsunderCore
 
 /// The phone's vibration motor, used for two feels:
-///   tick()  a short click each time the wheel passes a notch
-///   lock()  a rounder, longer pulse when you're centered on a feature
+///   tick(strength:)  a short click each time the wheel passes a notch
+///   lock()           a rounder, longer pulse when you're centered on a feature
 ///
 /// Strength and sharpness live in Tuning.swift. If the phone has no haptic
 /// motor (or it fails to start), every call quietly does nothing.
 final class Haptics {
+    /// The tick comes in a few strengths, as shares of Tuning.tickIntensity.
+    /// Fast spins use the softer ones. They're built once up front, because
+    /// making a new haptic pattern for every one of 45 ticks a second is wasteful.
+    private static let tickStrengths: [Float] = [1.0, 0.75, 0.5, 0.3]
+
     private var engine: CHHapticEngine?
-    private var tickPlayer: CHHapticPatternPlayer?
+    /// One ready-made tick per entry in `tickStrengths`, same order.
+    private var tickPlayers: [CHHapticPatternPlayer?] = []
     private var lockPlayer: CHHapticPatternPlayer?
     private var needsStart = true
 
@@ -32,7 +38,17 @@ final class Haptics {
         }
     }
 
-    func tick() { play(tickPlayer) }
+    /// `strength` 0...1 is a share of the full tick; the closest ready-made one plays.
+    func tick(strength: Float = 1) {
+        var best = 0
+        for i in Self.tickStrengths.indices
+        where abs(Self.tickStrengths[i] - strength) < abs(Self.tickStrengths[best] - strength) {
+            best = i
+        }
+        guard best < tickPlayers.count else { return }
+        play(tickPlayers[best])
+    }
+
     func lock() { play(lockPlayer) }
 
     // MARK: Private
@@ -50,16 +66,19 @@ final class Haptics {
         }
     }
 
-    /// Build both patterns once, so playing them costs almost nothing.
+    /// Build every pattern once, so playing them costs almost nothing.
     private func makePlayers() {
         guard let engine else { return }
-        let tick = CHHapticEvent(
-            eventType: .hapticTransient,
-            parameters: [
-                CHHapticEventParameter(parameterID: .hapticIntensity, value: Tuning.tickIntensity),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: Tuning.tickSharpness),
-            ],
-            relativeTime: 0)
+        tickPlayers = Self.tickStrengths.map { share -> CHHapticPatternPlayer? in
+            let tick = CHHapticEvent(
+                eventType: .hapticTransient,
+                parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: Tuning.tickIntensity * share),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: Tuning.tickSharpness),
+                ],
+                relativeTime: 0)
+            return try? engine.makePlayer(with: CHHapticPattern(events: [tick], parameters: []))
+        }
         let lock = CHHapticEvent(
             eventType: .hapticContinuous,
             parameters: [
@@ -68,7 +87,6 @@ final class Haptics {
             ],
             relativeTime: 0,
             duration: Tuning.lockDuration)
-        tickPlayer = try? engine.makePlayer(with: CHHapticPattern(events: [tick], parameters: []))
         lockPlayer = try? engine.makePlayer(with: CHHapticPattern(events: [lock], parameters: []))
     }
 }

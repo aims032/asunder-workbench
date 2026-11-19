@@ -35,4 +35,11 @@ jobs:
             -project Asunder.xcodeproj \
             -scheme Asunder \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO
+      # The radio must keep playing with the screen off. That needs "audio" in
+      # UIBackgroundModes in the built app's Info.plist; fail loudly if it's missing.
+      - name: Check background audio is declared
+        run: |
+          plist=build/Build/Products/Debug-iphonesimulator/Asunder.app/Info.plist
+          plutil -extract UIBackgroundModes json -o - "$plist" | tee /dev/stderr | grep -q '"audio"'

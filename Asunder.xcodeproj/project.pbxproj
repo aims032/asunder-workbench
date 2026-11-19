@@ -14,9 +14,22 @@
 		A5000000000000000000F001 /* Asunder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Asunder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A50000000000000000000102 /* Exceptions for "Asunder" folder in "Asunder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A50000000000000000000301 /* Asunder */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A50000000000000000000101 /* Asunder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A50000000000000000000102 /* Exceptions for "Asunder" folder in "Asunder" target */,
+			);
 			path = Asunder;
 			sourceTree = "<group>";
 		};
@@ -256,6 +269,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Asunder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Asunder;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -287,6 +301,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Asunder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Asunder;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
