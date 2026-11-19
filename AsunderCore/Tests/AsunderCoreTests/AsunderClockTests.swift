@@ -110,4 +110,11 @@ final class AsunderClockTests: XCTestCase {
             XCTAssertEqual(days.filter { $0 == .lightCone }.count, 2)
         }
     }
+
+    func testSecondsIntoDay() {
+        XCTAssertEqual(clock.secondsIntoDay(at: utc("2026-11-18 00:00:00")), 0, accuracy: 1e-6)
+        XCTAssertEqual(clock.secondsIntoDay(at: utc("2026-11-18 01:00:30")), 3_630, accuracy: 1e-6)
+        XCTAssertEqual(clock.secondsIntoDay(at: utc("2026-11-17 23:59:59")), 86_399, accuracy: 1e-6)
+        XCTAssertEqual(clock.secondsIntoDay(at: utc("2026-10-25 06:00:00")), 21_600, accuracy: 1e-6, "before the epoch too")
+    }
 }
