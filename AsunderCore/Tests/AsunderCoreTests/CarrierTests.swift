@@ -7,11 +7,22 @@ final class CarrierTests: XCTestCase {
 
     // MARK: Where it is
 
-    /// The wheel settles into notches, so the Carrier must sit exactly on one or
-    /// nobody could ever land dead on it.
-    func testCarrierSitsOnANotch() {
-        let inDetents = center.value / Tuning.detentSpacing
-        XCTAssertEqual(inDetents, inDetents.rounded(), accuracy: 1e-9)
+    /// The Carrier doesn't sit on a notch, but the wheel snaps onto it when it
+    /// comes to rest nearby, so you can land dead on it.
+    func testTheWheelSettlesDeadOnTheCarrier() {
+        for offset in [-0.6, -0.3, 0.2, 0.6] {
+            var dial = DialPhysics(start: center.value + offset * Tuning.detentSpacing)
+            dial.snapPoints = [center]
+            dial.grab()
+            dial.release()
+            for _ in 0..<600 { dial.step(1.0 / 60) }
+            XCTAssertEqual(Carrier.detentsAway(from: dial.band), 0, accuracy: 0.01, "from \(offset) notches off")
+        }
+    }
+
+    func testReadsAsShortwaveOnTheWideBand() {
+        XCTAssertEqual(SpectrumDisplay().unit(at: center), "MHz")
+        XCTAssertEqual(SpectrumDisplay().label(at: center), "19.92")
     }
 
     func testDistanceInDetents() {

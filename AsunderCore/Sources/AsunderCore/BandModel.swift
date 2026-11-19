@@ -7,8 +7,9 @@ import Foundation
 // later the weather and the transmissions) uses BandPosition, so no code ever
 // has to remember to wrap by hand.
 //
-// What number the listener *sees* (98.1, or something invented) is a separate
-// job: see BandDisplay below.
+// What number the listener *sees* is a separate job: see BandDisplay below.
+// Since Nov 19 that's a wide spectrum, from radio up through visible light
+// (SpectrumDisplay). The old FM-looking band is kept as a simple example.
 
 /// A place on the band. Always 0..<1.
 public struct BandPosition: Equatable, Hashable {
@@ -47,13 +48,14 @@ public func bellStrength(distance: Double, width: Double) -> Double {
 // MARK: - Display
 
 /// Turns a band position into the number shown on the dial.
-/// Whether the band is real FM or invented is OPEN (Build Foundation §11 #4),
-/// so the app only talks to this protocol and the choice lives in one place.
+/// The app only talks to this protocol, so the band's numbers live in one place.
 public protocol BandDisplay {
-    /// The number for a position, e.g. 98.1.
+    /// The frequency for a position, in the display's own units.
     func frequency(at position: BandPosition) -> Double
-    /// That number as the readout shows it, e.g. "98.1".
+    /// The number as the readout shows it, e.g. "19.93".
     func label(at position: BandPosition) -> String
+    /// The unit that goes with that number, e.g. "MHz".
+    func unit(at position: BandPosition) -> String
     /// Marks printed on the dial's scale. A label is nil for an unnumbered tick.
     func scaleMarks() -> [ScaleMark]
 }
@@ -64,7 +66,8 @@ public struct ScaleMark {
     public let label: String?
 }
 
-/// PLACEHOLDER: an FM-looking band, 87.5 to 108.0.
+/// SUPERSEDED Nov 19 by SpectrumDisplay: an FM-looking band, 87.5 to 108.0.
+/// Kept as the simplest example of a BandDisplay.
 /// Position 0 reads 87.5; just under 1 reads 108.0; then it loops back to 87.5.
 public struct FMBandDisplay: BandDisplay {
     public var bottom: Double = 87.5
@@ -83,6 +86,8 @@ public struct FMBandDisplay: BandDisplay {
         return "\(tenths / 10).\(tenths % 10)"
     }
 
+    public func unit(at position: BandPosition) -> String { "MHz" }
+
     /// A tick at every whole number (88 ... 107), numbered every 4 (88, 92 ... 104).
     /// 108 is skipped: it's the same spot as 87.5, where the loop joins.
     public func scaleMarks() -> [ScaleMark] {
@@ -94,4 +99,4 @@ public struct FMBandDisplay: BandDisplay {
 }
 
 /// The display the app uses. Swap this one line to change the whole band's numbers.
-public let currentBandDisplay: BandDisplay = FMBandDisplay()
+public let currentBandDisplay: BandDisplay = SpectrumDisplay()
