@@ -46,6 +46,8 @@ Build:
 6. **One Carrier feature.** A faint, steady tone at a fixed position that never moves, with a kink at every day turn (Instruments §3). Its strength is a bell curve on the distance from the dial to center. Confirmed Nov 19: it's heard as a zero-beat whistle (pitch slides down as you tune in, a low hum dead on), and the kink is a dropout of a second or two.
 7. **Background audio.** Declare the audio background mode so it keeps playing with the screen off. Test it as a radio, not a toy.
 
+**Status (Nov 19):** Phase 1 is built (PR #4, waiting for Evan to hear it on his phone). Phase 2 has started on its own branch (PR #5, stacked on #4) with the wide band only. **Weather features are on hold** until Evan has worked out why things behave the way they do on the spectrum (Instruments §3). Don't place features or pick their behavior before then.
+
 Out of scope for Phase 1: the analyzer, scope and terminal (Phases 3+), the finished look (Phase 4; Phase 1 screens are plain placeholders, see Look above), transmissions, the Shatter, the server, and login (there is none, Confirmed).
 
 Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` (epoch, day index, rule of the day), `DialView` + `DialPhysics`, `AudioEngine` (noise source → EQ → mixer, plus a feature oscillator), `Haptics`, `Tuning.swift`. Write unit tests for the clock and the wrap math, since every phone has to compute the same band.

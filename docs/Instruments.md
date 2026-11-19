@@ -96,6 +96,8 @@ The "frequencies that act a certain way." These are structures in the noise, not
 
 Rules carried from Transmission Rules without change: the week and its three-day advance; Still days hold everything; positions wrap because the band is a loop.
 
+**On hold (Evan, Nov 19):** no new features go on the band yet. Now that the band is a wide spectrum, radio through light (decision 21), Evan wants to develop the logic of *why* things behave the way they do on it before any are placed: what each feature is, why it lives where it does, why it moves. The table above stays as background. Lineup, voices and placement wait for him.
+
 **Why run the real rules before launch.** A listener who has watched the analyzer for a month knows the band's habits the night the first transmission arrives, and sees at once that the new line *doesn't behave like interference*. The regulars recognize a stranger. That's what makes the first transmission an event. The terminal can carry the hints for these pages from day one; nothing on the band confirms a rule until there's a voice to confirm it with.
 
 ---
