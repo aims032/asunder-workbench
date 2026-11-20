@@ -34,6 +34,12 @@ Decisions from Nov 19 (Phase 1 sound). Newest wins.
 21. **Confirmed (Nov 19):** **The band is a wide spectrum, from radio up through infrared and visible light**, the bench Evan envisions for the Physicist and Hannah. Numbers are log-spaced, so every tenfold gets equal room, the way wideband analyzers draw it. One wheel with many more notches, not a band switch. The top stops at light: Evan chose not to stretch it to the string (Planck) scale, "it would already be too much to go that far." Exact ends are placeholders (3 kHz to 1,000 THz).
    - *Physics hygiene (Claude, Nov 19):* strings vibrate around 10⁴³ Hz, far past anything a bench can receive. The band is what the Physicist's equipment can hear, not what the Asunder is made of; strings stay his theory of the place (Theoretical Concepts). **Proposed:** the vibration idea lives on the bench in ratios, the simple ratios that close a figure on the scope and set the Breathers' rhythms (§5, §6), not in the band's range.
 
+Decisions from Nov 20 (Phase 3, the analyzer). Newest wins.
+22. **Confirmed (Nov 20):** **The analyzer is a hybrid of digital and analog**, modeled on the **Keysight N9032B** (a modern swept signal analyzer: a big digital screen in a hardware chassis with hard keys and a rotary knob). It supersedes "a real-world analog instrument, a glowing CRT trace" (16). The trace still glows. (§4)
+23. **Confirmed (Nov 20):** **The analyzer's trace is swept from the band**, not taken from the speaker. For each point across the screen it computes the energy there from the same clock and laws as the sound, so it works at any span and every phone draws the same picture. Supersedes the Nov 6 "FFT over the mixed output" (§10): the phone's sound only holds 0 to 24 kHz, so an FFT of it could show only a sliver of the wide band. (§4)
+24. **Confirmed (Nov 20):** **The analyzer keeps a history, as a spectrogram**: a second view under (or instead of) the trace, one row per past sweep. It answers "does it keep a history?" the digital way, not on paper. (§4, Open 12)
+25. **Confirmed (Nov 20):** **Layout: the analyzer on top, the dial at the bottom**, portrait. Room for the scope is still to be found. In Phase 3 the screen is built properly (it's display, not artwork); the chassis, keys and knob are plain placeholders for Evan's art. (§0)
+
 ---
 
 ## 0. App structure
@@ -102,17 +108,21 @@ Rules carried from Transmission Rules without change: the week and its three-day
 
 ---
 
-## 4. The analyzer (look Confirmed Nov 12; mechanics Proposed Nov 6)
+## 4. The analyzer (look Confirmed Nov 20; built Nov 20)
 
-**Confirmed (Nov 12):** a real-world analog spectrum analyzer, drawn as real hardware, in keeping with the dial. Working read Evan accepted: a glowing CRT trace. On such a trace frequency runs across and energy goes up, and the dial's position would be marked on it the way the cursor was on the waterfall. Reference instruments are in Color.md.
+**Confirmed (Nov 20):** a hybrid digital and analog instrument modeled on the Keysight N9032B (decision 22): a digital screen (grid, glowing trace, marker, settings written around the edge) in a hardware chassis with keys and a knob. The trace is swept from the band, not taken from the speaker (23), and it keeps a history as a spectrogram (24).
 
-**Open: does it keep a history?** A real analog analyzer draws one live trace and keeps nothing but the glow of the tube. The Nov 6 design below was a *waterfall*, a scrolling picture of the recent past, and four things lean on that history:
+**As built (Nov 20, React Native).** Span, RBW (Auto or set by hand, marked "#"), reference level, trace mode (Clear Write, Average, Max Hold) and view (Split, Trace, Spectrogram). Pick Span, RBW or Ref with a key, then turn the knob. Center follows the dial, with marker 1 on the dial. A narrower RBW lowers the floor 10 dB per tenfold and slows the sweep as span / RBW² (the real trade-off). The floor's grass is measurement noise seeded from band position and clock, so it's shared. Today the band shows only the floor (which steps at the day turn) and the Carrier's line; weather features are on hold (§3). Feel numbers: `AnalyzerTuning` in `AsunderRN/src/core/Tuning.ts`.
+
+~~**Confirmed (Nov 12):** a real-world analog spectrum analyzer, drawn as real hardware, in keeping with the dial. Working read Evan accepted: a glowing CRT trace. On such a trace frequency runs across and energy goes up, and the dial's position would be marked on it the way the cursor was on the waterfall. Reference instruments are in Color.md.~~ Superseded Nov 20 (22).
+
+~~**Open: does it keep a history?** A real analog analyzer draws one live trace and keeps nothing but the glow of the tube. The Nov 6 design below was a *waterfall*, a scrolling picture of the recent past, and four things lean on that history:
 - a Walker's daily steps reading as a staircase (Speed, below);
 - seeing the day turn after the fact, as a line where the floor shifts (§2);
 - the screenshot as the found-footage unit, which shows a stretch of time (Capture, below);
 - the Asunder arriving as text drawn in the spectrum (§0).
 
-The analog way to keep a history is paper: a recorder that draws or burns the picture onto a moving strip, as the Kay Sona-Graph did for sound. Options, none chosen: the trace alone, or the trace plus a paper strip. Agreed Nov 12: this waits until Phase 3 is built.
+The analog way to keep a history is paper: a recorder that draws or burns the picture onto a moving strip, as the Kay Sona-Graph did for sound. Options, none chosen: the trace alone, or the trace plus a paper strip. Agreed Nov 12: this waits until Phase 3 is built.~~ Resolved Nov 20 (24): a spectrogram. The four uses above all work on it.
 
 ### The Nov 6 waterfall design (Proposed then; superseded as the display Nov 12)
 
@@ -192,6 +202,6 @@ The 26 Signs from the brand kit are the scope's collection. A closed Lissajous f
 9. ~~Which instrument is on screen first when the app opens.~~ Resolved Nov 6: the bench, all three together.
 10. ~~What the login is.~~ Resolved Nov 6: no login.
 11. ~~Who writes in the terminal.~~ Resolved Nov 6: the Physicist only; the Asunder intrudes.
-12. Does the analyzer keep a history, and is it on paper? Waits for Phase 3 (§4).
+12. ~~Does the analyzer keep a history, and is it on paper?~~ Resolved Nov 20: yes, as a spectrogram (24).
 13. Whether the two-mode scope design is what Evan wants the scope to do (§5).
-14. Which real instruments the dial, the analyzer and the scope are modeled on (Color.md).
+14. Which real instruments the dial, the analyzer and the scope are modeled on (Color.md). The analyzer: the Keysight N9032B (Nov 20, 22). The dial and the scope are still Open.

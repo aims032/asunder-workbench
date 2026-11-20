@@ -55,6 +55,8 @@ Build:
 
 **Status (Nov 19):** Phase 1 is built (PR #4, waiting for Evan to hear it on his phone). Phase 2 has started on its own branch (PR #5, stacked on #4) with the wide band only. **Weather features are on hold** until Evan has worked out why things behave the way they do on the spectrum (Instruments §3). Don't place features or pick their behavior before then.
 
+**Status (Nov 20):** Phase 3 has started with the spectrum analyzer (`AsunderRN/src/analyzer`, core in `src/core/Analyzer.ts`): a hybrid digital/analog instrument modeled on the Keysight N9032B, swept from the band (not an FFT of the sound), with a spectrogram, above the dial (Instruments decisions 22–25). Its feel numbers are `AnalyzerTuning` in `Tuning.ts`, kept apart from `Tuning` because the Swift parity test checks `Tuning`'s names against `Tuning.swift`. The scope is next.
+
 Out of scope for Phase 1: the analyzer, scope and terminal (Phases 3+), the finished look (Phase 4; Phase 1 screens are plain placeholders, see Look above), transmissions, the Shatter, the server, and login (there is none, Confirmed).
 
 Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` (epoch, day index, rule of the day), `DialView` + `DialPhysics`, `AudioEngine` (noise source → EQ → mixer, plus a feature oscillator), `Haptics`, `Tuning.swift`. Write unit tests for the clock and the wrap math, since every phone has to compute the same band.
@@ -71,6 +73,8 @@ Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` 
 0 Setup → 1 Dial + static → 2 Weather (pulse, walker, breathers, the three rules, Still days) → 3 Analyzer + scope → 4 Receiver shell (the real-hardware look) → 5 Ship v1, no transmissions → 6 Signal engine + content pipeline → 7 First transmission → 8 The Shatter + server → 9 Story layer.
 
 ## Repo layout
+
+Branches (Nov 19): **`main`** is the React Native app, with the Swift code kept beside it for comparison. **`swift`** is the Swift-only app frozen as of Phase 2a (the wide band); don't build on it. New work branches off `main`. The first, unmerged Phase 1 attempt is saved as the tag `archive/phase1-first-attempt`.
 
 - `AsunderRN/`: **the React Native app (iPhone, Android, web preview).** Start with `AsunderRN/README.md`, which says how to run it.
   - `src/core/`: the pure logic (band, clock, dial physics, the sound chain, `Tuning.ts`). It must not import React, React Native or any library, so it tests anywhere. Every file starts with `'worklet';` so it can also run on the audio and screen threads; because of that, a helper function must be written ABOVE the first place it is used.

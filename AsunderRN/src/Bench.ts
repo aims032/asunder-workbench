@@ -1,12 +1,15 @@
+import { initialPanel, panelSweepSettings } from './analyzer/AnalyzerControls';
+import { createAnalyzerModel } from './analyzer/AnalyzerModel';
+import type { AnalyzerModel } from './analyzer/AnalyzerModel';
 import { createReceiverAudio } from './audio/ReceiverAudio';
 import type { ReceiverAudio } from './audio/ReceiverAudio.types';
-import { createDialModel } from './dial/DialModel';
+import { createDialModel, DIAL_START } from './dial/DialModel';
 import type { DialModel } from './dial/DialModel';
 import { prepareHaptics } from './haptics/Haptics';
 
 /**
  * Everything on the bench, made once when the app opens and kept for as long
- * as it runs. Phase 3 adds the analyzer and the scope here.
+ * as it runs. Phase 3 adds the analyzer here; the scope comes later.
  *
  * It's made in App.tsx (not inside a screen) because React can re-create
  * screens whenever it likes, and there must only ever be one radio.
@@ -14,6 +17,7 @@ import { prepareHaptics } from './haptics/Haptics';
 export interface Bench {
   audio: ReceiverAudio;
   dial: DialModel;
+  analyzer: AnalyzerModel;
 }
 
 export function createBench(): Bench {
@@ -22,5 +26,6 @@ export function createBench(): Bench {
   return {
     audio: audio,
     dial: createDialModel(audio),
+    analyzer: createAnalyzerModel(panelSweepSettings(initialPanel()), DIAL_START),
   };
 }

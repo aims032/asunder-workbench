@@ -23,4 +23,5 @@ export * from './Noise';
 export * from './Filters';
 export * from './Carrier';
 export * from './Reception';
+export * from './Analyzer';
 export * from './ReceiverChain';

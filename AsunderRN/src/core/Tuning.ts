@@ -362,3 +362,141 @@ export const Tuning = {
    */
   audioBufferSeconds: 0.01,
 };
+
+// THE SPECTRUM ANALYZER'S FEEL NUMBERS
+//
+// Kept in their own list, next to Tuning, for one reason: the SwiftParity test
+// checks that Tuning has exactly the same names as the Swift app's
+// Tuning.swift, and the Swift app has no analyzer. (CLAUDE.md: don't edit the
+// Swift app as part of React Native work.) Everything else about them is the
+// same as Tuning: change them freely, they don't change the shared world.
+//
+// Units: span and RBW are fractions of the whole band (1 = all of it;
+// one detent is 1/2300, about 0.00043). Levels are in dB.
+export const AnalyzerTuning = {
+  // MARK: The picture
+
+  /**
+   * How many points across the screen. More = finer detail, more work per
+   * frame. (The Keysight's default is 1,001; a phone screen is narrower.)
+   */
+  points: 401,
+
+  /**
+   * How many past sweeps the spectrogram keeps (its height, in rows).
+   * More = a longer history on screen.
+   */
+  spectrogramRows: 120,
+
+  /** The level at the top of the screen when the app opens, in dB. */
+  startReferenceDb: -40,
+
+  /** How far one notch of the knob moves the reference level, in dB. */
+  referenceStepDb: 5,
+
+  /** The lowest and highest the reference level goes, in dB. */
+  lowestReferenceDb: -100,
+  highestReferenceDb: 0,
+
+  /**
+   * dB per grid square, top to bottom. 10 is the classic analyzer setting.
+   * Smaller = zoomed in on level: small swells look big, but the floor and
+   * the line may not both fit.
+   */
+  dbPerDivision: 10,
+
+  /** How many grid squares tall the screen is. (The Keysight's is 10.) */
+  divisions: 10,
+
+  /**
+   * The spectrogram's color range, in dB down from the reference level:
+   * the reference level is brightest, this far below it is black.
+   * Smaller = more contrast, so the floor goes dark and lines pop out;
+   * bigger = the floor's texture shows.
+   */
+  spectrogramRangeDb: 50,
+
+  // MARK: Span and RBW
+
+  /** The spans the knob steps through, widest first. 1 = the whole band. */
+  spanSteps: [1, 0.3, 0.1, 0.03, 0.01, 0.003],
+
+  /** The span when the app opens (one of spanSteps). */
+  startSpan: 0.1,
+
+  /** The RBWs the knob steps through, narrowest first (a 1-3-10 series, like the real thing). */
+  rbwSteps: [1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2],
+
+  /**
+   * On Auto, RBW is about span / this. Bigger = sharper lines and a lower
+   * floor at every span, but slower sweeps.
+   */
+  spanPerRbw: 100,
+
+  // MARK: The sweep
+
+  /**
+   * The "k" in sweep time = k x span / RBW^2 (the real rule). Bigger = every
+   * sweep slower. At the default span and Auto RBW, 6e-7 gives about 0.06 s.
+   */
+  sweepFactor: 6e-7,
+
+  /** The quickest a sweep is allowed to be, in seconds. Below about 0.05 the trace just flickers. */
+  fastestSweep: 0.05,
+
+  /**
+   * The slowest a sweep is allowed to be, in seconds. A real analyzer would
+   * happily take minutes at a very narrow RBW; this keeps it playable.
+   */
+  slowestSweep: 12,
+
+  /** The most sweeps measured in one frame, so a long pause never makes one frame slow. */
+  maxSweepsPerFrame: 2,
+
+  /**
+   * In Average mode, how many sweeps the trace averages over. More = a
+   * smoother, calmer floor that's slower to react to change.
+   */
+  averageCount: 16,
+
+  // MARK: What it sees
+
+  /**
+   * The noise floor's height on Still days and on moving days, in dB, at
+   * referenceRbw. The gap between them is how big the step is at the day turn.
+   */
+  coldFloorDb: -102,
+  hotFloorDb: -94,
+
+  /** The RBW the two floor numbers above are measured at. */
+  referenceRbw: 1e-3,
+
+  /**
+   * How strong the Carrier's line is, in dB. Higher = it stands taller above
+   * the floor. (Not the same as how loud it sounds: that's Tuning.carrierVolume.)
+   */
+  carrierDb: -62,
+
+  /**
+   * How many times a second the floor's grass changes. Higher = busier,
+   * fizzier grass; lower = it shimmers slowly.
+   */
+  grassRate: 30,
+
+  // MARK: Drawing and controls
+
+  /** How soft the glow around the trace is, in points. 0 = no glow, a bare line. */
+  traceGlow: 4,
+
+  /** How bright the glow is, 0...1. */
+  traceGlowOpacity: 0.55,
+
+  /** How many times a second the marker's number updates. */
+  markerReadoutRate: 8,
+
+  /**
+   * How far the knob turns for one step of whatever it's set to, in degrees.
+   * Smaller = a twitchier knob.
+   */
+  knobDegreesPerStep: 24,
+};

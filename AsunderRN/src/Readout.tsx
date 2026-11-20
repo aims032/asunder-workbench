@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   },
   number: {
     fontFamily: MONOSPACED_FONT,
-    fontSize: 64,
+    fontSize: 40, // was 64 before the analyzer joined the bench
     fontWeight: '300',
     fontVariant: ['tabular-nums'],
     color: '#d9d9d9',
