@@ -14,6 +14,7 @@ import {
   createReceiverTargets,
   receptionTargets,
 } from '../core';
+import { prepareHaptics } from '../haptics/Haptics';
 import type { ReceiverAudio } from './ReceiverAudio.types';
 
 // THE RADIO'S SOUND, ON A PHONE.
@@ -310,6 +311,9 @@ export function createReceiverAudio(): ReceiverAudio {
       await context.resume();
       isStopped = false;
       wasInterrupted = false;
+      // Only now that the sound is running: the haptics have to be set up
+      // after it, or the iPhone plays them silently (see Haptics.ts).
+      prepareHaptics();
       await showControls(true);
       lastOutputs = await readOutputs();
       return true;

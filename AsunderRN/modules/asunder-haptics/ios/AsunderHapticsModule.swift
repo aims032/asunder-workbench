@@ -11,7 +11,7 @@ import Foundation
 /// plays what it's asked to.
 ///
 /// The three functions TypeScript can call:
-///   prepare()                             warm up the engine; false if the phone has no haptic motor
+///   prepare()                             make a fresh engine and start it; false if the phone has no haptic motor
 ///   tick(intensity, sharpness)            a short click
 ///   lock(intensity, sharpness, duration)  a rounder, longer pulse
 public final class AsunderHapticsModule: Module {
@@ -58,10 +58,26 @@ final class HapticsEngine: @unchecked Sendable {
   /// would be wasteful.
   private var players: [Feel: CHHapticPatternPlayer] = [:]
 
+  /// Make a fresh engine and start it. Call this each time the radio's sound
+  /// starts: an engine made BEFORE iOS has set up the app's sound (its "audio
+  /// session") starts without complaint and then plays nothing you can feel.
   func prepare() -> Bool {
     mutex.lock(); defer { mutex.unlock() }
+    // Throw the old engine and its players away; ensureEngine() makes new ones.
+    engine = nil
+    players.removeAll()
+    triedToMakeEngine = false
+    needsStart = true
     guard let engine = ensureEngine() else { return false }
-    if needsStart, (try? engine.start()) != nil { needsStart = false }
+    if needsStart {
+      do {
+        try engine.start()
+        needsStart = false
+        report("engine started")
+      } catch {
+        report("engine failed to start: \(error)")
+      }
+    }
     return true
   }
 
@@ -75,8 +91,10 @@ final class HapticsEngine: @unchecked Sendable {
       }
       let player = try players[feel] ?? makePlayer(feel, engine)
       try player.start(atTime: CHHapticTimeImmediate)
+      report("playing")
     } catch {
       needsStart = true  // try starting again next time
+      report("could not play: \(error)")
     }
   }
 
@@ -85,8 +103,17 @@ final class HapticsEngine: @unchecked Sendable {
   private func ensureEngine() -> CHHapticEngine? {
     if triedToMakeEngine { return engine }
     triedToMakeEngine = true
-    guard CHHapticEngine.capabilitiesForHardware().supportsHaptics,
-          let newEngine = try? CHHapticEngine() else { return nil }
+    guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
+      report("this device has no haptic motor")
+      return nil
+    }
+    let newEngine: CHHapticEngine
+    do {
+      newEngine = try CHHapticEngine()
+    } catch {
+      report("could not make the engine: \(error)")
+      return nil
+    }
     newEngine.playsHapticsOnly = true
     // iOS stops the engine when the app goes to the background, or
     // resets it if the system haptics server restarts. Recover from both.
@@ -96,8 +123,19 @@ final class HapticsEngine: @unchecked Sendable {
     return newEngine
   }
 
+  /// Write a line to the device log when something changes or goes wrong, so
+  /// a silent phone can be diagnosed. The same message is never written twice
+  /// in a row: a failing tick would otherwise write 45 lines a second.
+  private var lastReport = ""
+  private func report(_ message: String) {
+    if message == lastReport { return }
+    lastReport = message
+    NSLog("[AsunderHaptics] %@", message)
+  }
+
   private func markStopped(dropPlayers: Bool) {
     mutex.lock(); defer { mutex.unlock() }
+    report(dropPlayers ? "iOS reset the engine" : "iOS stopped the engine")
     needsStart = true
     if dropPlayers { players.removeAll() }  // they're rebuilt the next time each is played
   }

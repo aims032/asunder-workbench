@@ -11,7 +11,13 @@ import { Tuning } from '../core';
 // The actual buzzing is done by a small native module (modules/asunder-haptics),
 // because React Native has no built-in haptic with a chosen strength.
 
-/** Wake the haptic engine up, so the very first tick isn't late. */
+/**
+ * Make a fresh haptic engine and wake it up, so the next tick isn't late.
+ *
+ * The radio calls this each time its sound starts (ReceiverAudio.native.ts).
+ * The order matters on iPhone: an engine made before the sound is set up
+ * starts without complaint but plays nothing you can feel.
+ */
 export function prepareHaptics(): void {
   AsunderHaptics?.prepare();
 }
