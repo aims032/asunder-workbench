@@ -16,23 +16,10 @@
 //
 // How the three are mixed is the "noise temperature" (NoiseColor, below).
 // Nothing here repeats: the random numbers come from a generator whose
-// sequence is 2^64 samples long (millions of years at 48 kHz).
+// sequence is 2^128 numbers long (far longer than the universe is old, at
+// 48 kHz).
 
-// MARK: 64-bit numbers in two halves
-//
-// The random generator works on whole numbers 64 bits long. A JavaScript
-// number can only hold a whole number exactly up to 53 bits, so each 64-bit
-// number is kept as TWO ordinary numbers of 32 bits each:
-//
-//     hi = the top 32 bits        lo = the bottom 32 bits
-//     the full number = hi * 4294967296 + lo        (4294967296 is 2^32)
-//
-// It's like doing sums on paper with two-digit numbers when the numbers have
-// four digits: do the low pair, carry into the high pair. In the code below,
-// `>>> 0` means "keep only the bottom 32 bits, as a positive number", and
-// Math.imul multiplies two 32-bit numbers and keeps the bottom 32 bits.
-// Done this way the sequence is exactly the Swift app's, bit for bit, and
-// nothing is created in memory while it runs (so it's safe on the audio thread).
+// MARK: The random numbers
 //
 // BIT OPERATORS, used in the code below. They work on the
 // individual bits of a number (think of a row of 32 on/off switches):
@@ -46,15 +33,49 @@
 //            just the bottom 16 bits.
 //   0x...    a number written in hexadecimal (base 16), the usual way to write
 //            bit patterns. 0xff is 255.
-// Why this file needs them: they are the exact steps of the Swift app's
-// generator, which does them on one 64-bit number. Here each step is done on
-// the two 32-bit halves. The SwiftParity test checks the result bit for bit
-// against Swift, so don't change any of it.
+// `>>> 0` on its own means "read these 32 bits as a positive whole number",
+// and Math.imul multiplies two 32-bit numbers and keeps the bottom 32 bits.
+//
+// WHY THIS GENERATOR (Nov 20). Until then the static used the Swift app's
+// generator, which works on 64-bit numbers. A JavaScript number can't hold
+// those, so each step was done on two 32-bit halves, and on the phone that
+// took about half of the whole sound loop's time. This one (xoshiro128**,
+// Blackman and Vigna, 2018) works on 32-bit numbers to begin with, so each
+// step is a handful of operations. It is as good for audio: it never repeats
+// in any useful sense (its sequence is 2^128 numbers long), and it passes the
+// standard statistical tests for randomness.
+//
+// What changed for the sound: the hiss is a different (equally random)
+// stream than the Swift app's, so the two apps no longer make the same hiss
+// sample for sample. That was never the aim: the hiss doesn't match between
+// phones either (each starts from its own seed). Everything that SHAPES it
+// (the colors, the temperature, the Carrier, the filters) still matches the
+// Swift app, and SwiftParity.test.ts still checks that, by feeding the chain
+// the Swift app's random numbers (__tests__/SwiftRandom.ts).
+//
+// NoiseTests.test.ts checks this code against numbers from the generator's
+// published C code, so don't change any of it.
+
+/**
+ * A fast random number generator that is safe to run on the audio thread
+ * (no locks, no memory allocation). Same seed, same sequence, on every machine.
+ * This is xoshiro128** (Blackman and Vigna, 2018).
+ */
+export interface NoiseRandom {
+  /** Internal. The generator's memory: four 32-bit numbers. */
+  s0: number;
+  s1: number;
+  s2: number;
+  s3: number;
+  /** The raw 32-bit number made by the latest randomNext (0 up to 2^32). */
+  out: number;
+}
 
 /**
  * The top 32 bits of a 32-bit × 32-bit multiply (the full answer has 64 bits,
  * too many to hold at once). Each number is cut into two 16-bit pieces and
  * multiplied the long way, piece by piece, so nothing ever gets too big.
+ * (Only used to scramble the seed, once, below.)
  */
 function multiplyHigh32(a: number, b: number): number {
   const aLow = a & 0xffff;
@@ -67,128 +88,110 @@ function multiplyHigh32(a: number, b: number): number {
 }
 
 /**
- * Multiplies two 64-bit numbers (each given as hi and lo halves) and returns
- * the HIGH half of the answer. Bits past the 64th are dropped, like a car's
- * mileage counter rolling over.
+ * One SplitMix64 scramble (Vigna), the standard way to turn a seed into a
+ * generator's starting memory. `hi` and `lo` are the top and bottom 32 bits
+ * of a 64-bit number (the full number is hi * 2^32 + lo). Its scrambled
+ * value goes into `into.s0` and `into.s1` when `first` is true, or into
+ * `into.s2` and `into.s3` (the bottom half first each time).
  */
-function multiply64High(aHi: number, aLo: number, bHi: number, bLo: number): number {
-  return (multiplyHigh32(aLo, bLo) + Math.imul(aLo, bHi) + Math.imul(aHi, bLo)) >>> 0;
-}
-
-/** The LOW half of the same multiply. It only depends on the two low halves. */
-function multiply64Low(aLo: number, bLo: number): number {
-  return Math.imul(aLo, bLo) >>> 0;
-}
-
-// MARK: The random numbers
-
-/**
- * A fast random number generator that is safe to run on the audio thread
- * (no locks, no memory allocation). Same seed, same sequence, on every machine.
- * This is xorshift64* (Vigna, 2014).
- */
-export interface NoiseRandom {
-  /** Internal. The generator's 64-bit memory, as two 32-bit halves. */
-  hi: number;
-  lo: number;
-  /** The raw 64-bit number made by the latest randomNext, as two 32-bit halves. */
-  outHi: number;
-  outLo: number;
+function splitMix64(hi: number, lo: number, into: NoiseRandom, first: boolean): void {
+  // Each step is written first as the 64-bit sum it performs (z is the number
+  // held in hi and lo), then as the same sum on the two halves.
+  // z = (z ^ (z >> 30)) * 0xBF58_476D_1CE4_E5B9
+  lo = (lo ^ ((lo >>> 30) | (hi << 2))) >>> 0;
+  hi = (hi ^ (hi >>> 30)) >>> 0;
+  let productHi =
+    (multiplyHigh32(lo, 0x1ce4e5b9) + Math.imul(lo, 0xbf58476d) + Math.imul(hi, 0x1ce4e5b9)) >>> 0;
+  lo = Math.imul(lo, 0x1ce4e5b9) >>> 0;
+  hi = productHi;
+  // z = (z ^ (z >> 27)) * 0x94D0_49BB_1331_11EB
+  lo = (lo ^ ((lo >>> 27) | (hi << 5))) >>> 0;
+  hi = (hi ^ (hi >>> 27)) >>> 0;
+  productHi =
+    (multiplyHigh32(lo, 0x133111eb) + Math.imul(lo, 0x94d049bb) + Math.imul(hi, 0x133111eb)) >>> 0;
+  lo = Math.imul(lo, 0x133111eb) >>> 0;
+  hi = productHi;
+  // z ^= z >> 31
+  lo = (lo ^ ((lo >>> 31) | (hi << 1))) >>> 0;
+  hi = (hi ^ (hi >>> 31)) >>> 0;
+  if (first) {
+    into.s0 = lo;
+    into.s1 = hi;
+  } else {
+    into.s2 = lo;
+    into.s3 = hi;
+  }
 }
 
 /** `seed` is a whole number from 0 up to 2^53 (9007199254740992). */
 export function createNoiseRandom(seed: number): NoiseRandom {
+  const random: NoiseRandom = { s0: 0, s1: 0, s2: 0, s3: 0, out: 0 };
   // Split the seed into its two halves.
-  let hi = Math.floor(seed / 4294967296) >>> 0;
-  let lo = seed >>> 0;
+  const hi = Math.floor(seed / 4294967296) >>> 0;
+  const lo = seed >>> 0;
 
-  // Scramble the seed (SplitMix64), so nearby seeds like 1 and 2 still give
-  // unrelated sequences. The state must never be zero, or it gets stuck at zero.
-  // Each step is written first as the 64-bit sum it performs (z is the number
-  // held in hi and lo), then as the same sum on the two halves.
+  // Scramble it (SplitMix64), so nearby seeds like 1 and 2 still give
+  // unrelated sequences. SplitMix64 adds 0x9E37_79B9_7F4A_7C15 to its memory
+  // before each scramble: once for the first two numbers, twice for the
+  // other two.
+  const lowSum1 = lo + 0x7f4a7c15;
+  const carry1 = lowSum1 > 0xffffffff ? 1 : 0; // the low half overflowed: carry 1 up
+  const lo1 = lowSum1 >>> 0;
+  const hi1 = (hi + 0x9e3779b9 + carry1) >>> 0;
+  splitMix64(hi1, lo1, random, true);
+  const lowSum2 = lo1 + 0x7f4a7c15;
+  const carry2 = lowSum2 > 0xffffffff ? 1 : 0;
+  splitMix64((hi1 + 0x9e3779b9 + carry2) >>> 0, lowSum2 >>> 0, random, false);
 
-  // z = seed + 0x9E37_79B9_7F4A_7C15
-  const lowSum = lo + 0x7f4a7c15;
-  const carry = lowSum > 0xffffffff ? 1 : 0; // the low half overflowed: carry 1 up
-  lo = lowSum >>> 0;
-  hi = (hi + 0x9e3779b9 + carry) >>> 0;
-
-  // z = (z ^ (z >> 30)) * 0xBF58_476D_1CE4_E5B9
-  lo = (lo ^ ((lo >>> 30) | (hi << 2))) >>> 0;
-  hi = (hi ^ (hi >>> 30)) >>> 0;
-  let productHi = multiply64High(hi, lo, 0xbf58476d, 0x1ce4e5b9);
-  lo = multiply64Low(lo, 0x1ce4e5b9);
-  hi = productHi;
-
-  // z = (z ^ (z >> 27)) * 0x94D0_49BB_1331_11EB
-  lo = (lo ^ ((lo >>> 27) | (hi << 5))) >>> 0;
-  hi = (hi ^ (hi >>> 27)) >>> 0;
-  productHi = multiply64High(hi, lo, 0x94d049bb, 0x133111eb);
-  lo = multiply64Low(lo, 0x133111eb);
-  hi = productHi;
-
-  // z ^= z >> 31
-  lo = (lo ^ ((lo >>> 31) | (hi << 1))) >>> 0;
-  hi = (hi ^ (hi >>> 31)) >>> 0;
-
-  // state = z == 0 ? 0x2545_F491_4F6C_DD1D : z
-  if (hi === 0 && lo === 0) {
-    hi = 0x2545f491;
-    lo = 0x4f6cdd1d;
+  // The memory must never be all zero, or it gets stuck at zero. (SplitMix64
+  // practically never gives that; this is a safety net.)
+  if (random.s0 === 0 && random.s1 === 0 && random.s2 === 0 && random.s3 === 0) {
+    random.s0 = 1;
   }
-  return { hi: hi, lo: lo, outHi: 0, outLo: 0 };
+  return random;
 }
 
 /**
- * The next raw 64-bit number. It's left in random.outHi and random.outLo
- * (two halves) instead of being handed back, because handing back two
- * numbers at once would create a new object on every call.
+ * The next raw 32-bit number. It's left in random.out instead of being
+ * handed back, the same way the static's other parts work.
+ * noiseFillRandoms (below) does these same steps written out in its loop;
+ * if you change this, change it to match.
  */
 export function randomNext(random: NoiseRandom): void {
-  let hi = random.hi;
-  let lo = random.lo;
-
-  // state ^= state >> 12
-  lo = (lo ^ ((lo >>> 12) | (hi << 20))) >>> 0;
-  hi = (hi ^ (hi >>> 12)) >>> 0;
-  // state ^= state << 25
-  hi = (hi ^ ((hi << 25) | (lo >>> 7))) >>> 0;
-  lo = (lo ^ (lo << 25)) >>> 0;
-  // state ^= state >> 27
-  lo = (lo ^ ((lo >>> 27) | (hi << 5))) >>> 0;
-  hi = (hi ^ (hi >>> 27)) >>> 0;
-
-  random.hi = hi;
-  random.lo = lo;
-
-  // return state * 0x2545_F491_4F6C_DD1D
-  //
-  // This is multiply64High and multiply64Low (above), written out in place
-  // instead of called. This runs three times per sample on the audio thread,
-  // and on the phone each function call costs time (see chainRender in
-  // ReceiverChain.ts). The steps and their order are exactly the same, so the
-  // numbers are the same bit for bit. The multiplier's two halves are
-  // 0x2545f491 (high) and 0x4f6cdd1d (low); the low half is cut into its two
-  // 16-bit pieces once, as the constants 0xdd1d and 0x4f6c.
-  //   multiplyHigh32(lo, 0x4f6cdd1d):
-  const loLow = lo & 0xffff;
-  const loHigh = lo >>> 16;
-  const lowLow = loLow * 0xdd1d;
-  const middle = loHigh * 0xdd1d + loLow * 0x4f6c + (lowLow >>> 16);
-  const high32 = loHigh * 0x4f6c + Math.floor(middle / 65536);
-  //   multiply64High(hi, lo, 0x2545f491, 0x4f6cdd1d) and multiply64Low(lo, 0x4f6cdd1d):
-  random.outHi = (high32 + Math.imul(lo, 0x2545f491) + Math.imul(hi, 0x4f6cdd1d)) >>> 0;
-  random.outLo = Math.imul(lo, 0x4f6cdd1d) >>> 0;
+  const s1 = random.s1;
+  // result = rotl(s1 * 5, 7) * 9   (rotl: shift left, and the bits that fall
+  // off the top come back in at the bottom)
+  const times5 = Math.imul(s1, 5);
+  random.out = Math.imul((times5 << 7) | (times5 >>> 25), 9) >>> 0;
+  // Stir the memory.
+  const t = s1 << 9;
+  let s0 = random.s0;
+  let s2 = random.s2 ^ s0;
+  let s3 = random.s3 ^ s1;
+  const newS1 = s1 ^ s2;
+  s0 ^= s3;
+  s2 ^= t;
+  s3 = (s3 << 11) | (s3 >>> 21); // rotl(s3, 11)
+  random.s0 = s0 >>> 0;
+  random.s1 = newS1 >>> 0;
+  random.s2 = s2 >>> 0;
+  random.s3 = s3 >>> 0;
 }
 
-/** The next number between -1 and 1, evenly spread. */
+/**
+ * 2^-31: one step between neighbouring values of randomNextSigned.
+ * (Internal. It sits up here because in these files a value has to be
+ * written above the function that uses it.)
+ */
+const signedStep = 1 / 2147483648;
+
+/**
+ * The next number between -1 and 1, evenly spread. (-1 is possible,
+ * 1 is not, in steps of 2^-31: far finer than a 32-bit audio sample.)
+ */
 export function randomNextSigned(random: NoiseRandom): number {
   randomNext(random);
-  // The top 53 bits make a number in 0..<1, then stretch to -1..<1.
-  // (All 32 bits of the high half, then the top 21 bits of the low half.
-  // 2097152 is 2^21 and 9007199254740992 is 2^53.)
-  const top53 = random.outHi * 2097152 + (random.outLo >>> 11);
-  return (top53 / 9007199254740992) * 2 - 1;
+  return random.out * signedStep - 1;
 }
 
 /**
@@ -197,11 +200,34 @@ export function randomNextSigned(random: NoiseRandom): number {
  * chainRender asks for a whole stretch at once (three per sample: white,
  * pink, brown) instead of one at a time, so the sound loop itself only reads
  * from a list. Creates nothing new in memory.
+ *
+ * It is randomNext written out in a loop, with the generator's memory in
+ * local variables (cheaper on the phone; see chainRender in ReceiverChain.ts).
+ * A test checks it gives exactly what randomNextSigned gives.
  */
 export function noiseFillRandoms(random: NoiseRandom, out: Float64Array, count: number): void {
+  let s0 = random.s0;
+  let s1 = random.s1;
+  let s2 = random.s2;
+  let s3 = random.s3;
+  let raw = random.out;
   for (let i = 0; i < count; i += 1) {
-    out[i] = randomNextSigned(random);
+    const times5 = Math.imul(s1, 5);
+    raw = Math.imul((times5 << 7) | (times5 >>> 25), 9) >>> 0;
+    const t = s1 << 9;
+    s2 ^= s0;
+    s3 ^= s1;
+    s1 ^= s2;
+    s0 ^= s3;
+    s2 ^= t;
+    s3 = (s3 << 11) | (s3 >>> 21);
+    out[i] = raw * signedStep - 1;
   }
+  random.s0 = s0 >>> 0;
+  random.s1 = s1 >>> 0;
+  random.s2 = s2 >>> 0;
+  random.s3 = s3 >>> 0;
+  random.out = raw;
 }
 
 // MARK: The three colors

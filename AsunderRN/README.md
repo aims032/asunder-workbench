@@ -104,7 +104,7 @@ Checked:
 - `npm run typecheck` is clean. `npm test`: 13 suites, 225 tests pass, 1 is a `todo` (a Swift test that never really tested anything; it needs your decision).
 - iPhone 17 simulator, Debug and Release: the app opens with no error screen and the layout matches the web version. A flick coasts and slows; a slow drag follows the finger.
 - The audio thread runs our sound code all the time, and a temporary loudness meter (now removed) showed real sound coming out at 48 kHz.
-- Audio CPU on the simulator: about 23–24% of one Mac core in Release (Swift's sound code: about 0.14%). The full numbers and what they mean are in `docs/Build Foundation.md`, section 3.
+- Audio CPU on the simulator: about 23–24% of one Mac core in Release (Swift's sound code: about 0.14%), measured Nov 19. The Nov 20 speed-ups should bring that down a lot (about 2.3 times on a computer) but haven't been measured on the simulator yet. The full numbers and what they mean are in `docs/Build Foundation.md`, section 3.
 
 Not checked yet:
 - **Nobody has listened to it.** The sound was measured, not heard.

@@ -26,7 +26,7 @@ import type { CarrierOscillator } from './Carrier';
 import { createCarrierOscillator } from './Carrier';
 import type { Smoothed, StateVariableFilter } from './Filters';
 import { createSmoothed, createStateVariableFilter, filterSetCutoff } from './Filters';
-import type { NoiseRandom, NoiseSource } from './Noise';
+import type { NoiseSource } from './Noise';
 import {
   brownMemory,
   brownScale,
@@ -147,17 +147,20 @@ export function chainRestartFade(chain: ReceiverChain): void {
 }
 
 /**
- * chainRender, with the static's random numbers coming from `fillRandoms`.
- * The app always uses noiseFillRandoms (through chainRender, below). The
- * Swift comparison test hands in its own, so it can feed the chain the exact
- * random numbers the Swift app used. Read chainRender's notes first.
+ * chainRender, with the static's random numbers coming from `random`, through
+ * `fillRandoms`. The app always uses the chain's own generator and
+ * noiseFillRandoms (through chainRender, below). The Swift comparison test
+ * hands in the Swift app's generator instead, so it can feed the chain the
+ * exact random numbers the Swift app used. Read chainRender's notes first.
+ * (`<R>` means "any kind of generator, as long as `fillRandoms` takes it".)
  */
-export function chainRenderWith(
+export function chainRenderWith<R>(
   chain: ReceiverChain,
   out: Float32Array,
   count: number,
   targets: ReceiverTargets,
-  fillRandoms: (random: NoiseRandom, out: Float64Array, count: number) => void,
+  random: R,
+  fillRandoms: (random: R, out: Float64Array, count: number) => void,
 ): void {
   // Looked up once here, so the loop doesn't repeat the lookup on every sample.
   const sampleRate = chain.sampleRate;
@@ -259,7 +262,7 @@ export function chainRenderWith(
   // random numbers for the stretch, then the sound loop for it.
   for (let start = 0; start < count; start += randomStretch) {
     const end = Math.min(start + randomStretch, count);
-    fillRandoms(noise.random, randoms, 3 * (end - start));
+    fillRandoms(random, randoms, 3 * (end - start));
     let r = 0; // where in `randoms` the next number is
 
     for (let i = start; i < end; i += 1) {
@@ -417,7 +420,7 @@ export function chainRender(
   count: number,
   targets: ReceiverTargets,
 ): void {
-  chainRenderWith(chain, out, count, targets, noiseFillRandoms);
+  chainRenderWith(chain, out, count, targets, chain.noise.random, noiseFillRandoms);
 }
 
 /**
