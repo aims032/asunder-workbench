@@ -9,7 +9,8 @@
     "backgroundColor": "#000000",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.example.asunder.rn"
+      "bundleIdentifier": "com.example.asunder.rn",
+      "appleTeamId": "94Z8TRKGF7"
     },
     "android": {
       "package": "com.example.asunder.rn",
@@ -42,7 +43,8 @@
         }
       ],
       "expo-build-properties",
-      "./plugins/withNewArchFlag"
+      "./plugins/withNewArchFlag",
+      "./plugins/withScriptSandboxOff"
     ]
   }
 }
