@@ -23,10 +23,14 @@ struct ContentView: View {
                 Spacer()
 
                 // The readout follows the needle, so it lags the hand slightly too.
-                Text(display.label(at: dial.needle))
-                    .font(.system(size: 64, weight: .light, design: .monospaced))
-                    .foregroundStyle(Color(white: 0.85))
-                    .monospacedDigit()
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(display.label(at: dial.needle))
+                        .font(.system(size: 64, weight: .light, design: .monospaced))
+                        .monospacedDigit()
+                    Text(display.unit(at: dial.needle))
+                        .font(.system(size: 20, weight: .light, design: .monospaced))
+                }
+                .foregroundStyle(Color(white: 0.85))
 
                 BandScaleView(needle: dial.needle, display: display)
                     .frame(height: 44)

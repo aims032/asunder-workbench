@@ -29,7 +29,7 @@ Decisions from the Nov 6 session:
 
 | Term | Meaning |
 | --- | --- |
-| **Band** | The frequency range the dial covers. A loop (Confirmed Nov 6): past the top end you arrive at the bottom. Positions are written as a number from 0 to 1 so the rules don't depend on whether the band is real FM or invented (still Open). |
+| **Band** | The frequency range the dial covers. A loop (Confirmed Nov 6): past the top end you arrive at the bottom. Positions are written as a number from 0 to 1 so the rules don't depend on what numbers the dial shows. ~~Real FM or invented (still Open).~~ Resolved Nov 19: a wide spectrum, radio through light, log-spaced (Instruments decision 21). |
 | **Home** (h) | The position a whole transmission was born at. The first fragment of a shattered transmission always sits at its current home. |
 | **The clock** | Shared UTC time minus the Asunder epoch. Every phone computes the same clock. |
 | **Day turn** | The moment the Asunder day changes. **Proposed:** 00:00 UTC (7pm Eastern in winter, 8pm in summer). **Open.** |
@@ -163,7 +163,7 @@ The whole returns at the same time of day as the shatter, three moving days late
 h_c = h_0 + c · ε      (mod 1)
 ```
 
-c is the number of times the transmission has been shattered; ε is the drift per cycle. **Proposed: ε = 1/24** of the band (on an FM band, about 0.85 MHz). The whole circles the entire band in 24 cycles and comes home. A transmission that has been broken many times has traveled far from where it was born.
+c is the number of times the transmission has been shattered; ε is the drift per cycle. **Proposed: ε = 1/24** of the band (~~on an FM band, about 0.85 MHz~~; on the wide band, about half a tenfold: each cycle the whole comes back at about 3 times its old frequency). The whole circles the entire band in 24 cycles and comes home. A transmission that has been broken many times has traveled far from where it was born.
 
 Direction is fixed per transmission (up the band). **Open:** whether some transmissions drift down, or whether direction flips at a story beat.
 
@@ -267,7 +267,7 @@ The piece is always playing somewhere on the band. A chaser follows it.
 5. Day-turn hour.
 6. Drift amount ε, and whether direction ever varies.
 7. Does the app ever acknowledge the community layer (carried from Build Foundation)?
-8. Real FM band vs invented band (now also decides how "1/24 of the band" reads on the dial).
+8. ~~Real FM band vs invented band (now also decides how "1/24 of the band" reads on the dial).~~ Resolved Nov 19: radio through light; 1/24 of the band is about ×3 in frequency (§5).
 
 ---
 

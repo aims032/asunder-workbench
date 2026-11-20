@@ -4,22 +4,25 @@
 // shared world (that's World.swift), so tweak them freely, rebuild, and feel
 // the difference. Each one says what turning it up or down does.
 //
-// Units: most dial numbers are in DETENTS (one tick = one 0.1 step on the
-// FM-looking readout). "Detents per second" is how fast the wheel turns.
+// Units: most dial numbers are in DETENTS (one notch of the wheel; on the wide
+// band each notch is about 1.2% higher in frequency than the last).
+// "Detents per second" is how fast the wheel turns.
 
 public enum Tuning {
 
     // MARK: Band
 
-    /// How far apart the detent ticks are, as a fraction of the whole band.
-    /// 1/205 is one tick per 0.1 on the FM-looking display (20.5 wide / 0.1).
-    /// Smaller = more ticks per lap, a finer and busier feel.
-    /// Bigger = fewer, chunkier clicks.
-    /// CAREFUL: the Carrier (World.carrierPosition = 68/205) must sit exactly on
-    /// a notch, or the wheel can never settle dead on it (a test checks). Only
-    /// spacings of 1/205, 1/410, 1/615... keep it there. Any other value means
-    /// moving the Carrier too, and that changes the shared world.
-    public static let detentSpacing: Double = 1.0 / 205.0
+    /// How many notches in one lap of the whole band. The wide band spans
+    /// about 11.5 tenfolds (3 kHz to 1,000 THz), so 2,300 is about 200 notches
+    /// per tenfold: each notch is ~1.2% higher in frequency than the last.
+    /// Bigger = finer tuning, but a longer trip round the band.
+    /// Smaller = coarser, quicker to cross. (Was 205 on the old FM band.)
+    /// Features don't need to sit on a notch: the wheel snaps onto them (snapToFeature).
+    public static let notchesPerLap: Double = 2_300
+
+    /// How far apart the notches are, as a fraction of the whole band.
+    /// Worked out from notchesPerLap; change that one instead.
+    public static let detentSpacing: Double = 1.0 / notchesPerLap
 
     // MARK: Dial: the hand
 
@@ -34,8 +37,10 @@ public enum Tuning {
     public static let flickSmoothing: Double = 0.035
 
     /// The fastest a flick can spin the wheel, in detents per second.
-    /// 205 is one full lap of the band per second.
-    public static let maxFlickSpeed: Double = 300
+    /// 700 with coastFriction 1.6 carries a hard flick ~440 notches, about two
+    /// tenfolds; five or six hard flicks go all the way round the band.
+    /// (Nov 19: up from 300 when the band got wide.)
+    public static let maxFlickSpeed: Double = 700
 
     // MARK: Dial: the coast
 
@@ -54,6 +59,13 @@ public enum Tuning {
     /// Bigger = a snappy click-in. Smaller = a soft, lazy settle.
     /// Set to 0 for no notches at all: the wheel just stops wherever it is.
     public static let settleRate: Double = 14
+
+    /// Lock-on snap, like the automatic frequency control on an old tuner:
+    /// when the wheel comes to rest within this many detents of a feature's
+    /// center, it settles exactly onto the feature instead of the nearest notch.
+    /// Features can sit anywhere on the band, so without this you could land
+    /// near one but never dead on. 0 = no snap. Bigger = a stronger, wider pull.
+    public static let snapToFeature: Double = 0.75
 
     // MARK: Dial: the needle and readout
 

@@ -25,6 +25,10 @@ public struct DialPhysics {
     /// True while a finger is on the wheel.
     public private(set) var isHeld = false
 
+    /// Places the wheel snaps onto when it comes to rest nearby (feature centers).
+    /// The app keeps this up to date; see Tuning.snapToFeature.
+    public var snapPoints: [BandPosition] = []
+
     /// The notch the wheel is easing into after it slowed down, if any.
     private var settleTarget: Double?
     /// Finger movement since the last step, used to measure flick speed.
@@ -125,9 +129,15 @@ public struct DialPhysics {
 
     /// Start easing into a notch. Moving forward, take the next notch ahead
     /// (no backwards jerk); with no direction, take the nearest one.
+    /// But if a feature's center is close to where the wheel is, settle on the
+    /// feature instead (lock-on snap).
     /// Does nothing when notches are turned off (settleRate = 0).
     private mutating func beginSettle(towards direction: Double?) {
         guard Tuning.settleRate > 0 else { return }
+        if let feature = snapPoint(near: position) {
+            settleTarget = feature
+            return
+        }
         let inDetents = position / Tuning.detentSpacing
         let notch: Double
         switch direction {
@@ -136,6 +146,22 @@ public struct DialPhysics {
         default:                 notch = inDetents.rounded()
         }
         settleTarget = notch * Tuning.detentSpacing
+    }
+
+    /// The nearest snap point to `place`, if one is within Tuning.snapToFeature.
+    /// Returned unwrapped, on the same lap as `place`, so the wheel doesn't spin round to it.
+    private func snapPoint(near place: Double) -> Double? {
+        let reach = Tuning.snapToFeature * Tuning.detentSpacing
+        var best: Double?
+        var bestGap = Double.infinity
+        for point in snapPoints {
+            let gap = BandPosition(place).distance(to: point)   // the short way round
+            if abs(gap) <= reach && abs(gap) < bestGap {
+                best = place + gap
+                bestGap = abs(gap)
+            }
+        }
+        return best
     }
 
     /// The share of the remaining gap to close in `dt`, for a smooth chase

@@ -31,8 +31,10 @@ final class LockDetectorTests: XCTestCase {
     }
 
     func testTheFarSideOfTheLoopIsNotACrossing() {
-        // Half a band away the distance flips from +102 to -102: that's not the center.
-        XCTAssertEqual(pulses([102, -102, 102]), [])
+        // Half a band away the distance flips sign (+1149 to -1149 notches on
+        // the wide band). That's the far side of the loop, not the center.
+        let half = 0.5 / Tuning.detentSpacing - 1
+        XCTAssertEqual(pulses([half, -half, half]), [])
     }
 
     func testLeavingThroughTheCenterDoesntPulseTwice() {

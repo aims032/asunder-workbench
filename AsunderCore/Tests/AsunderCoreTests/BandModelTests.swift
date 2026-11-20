@@ -63,10 +63,17 @@ final class BandModelTests: XCTestCase {
         XCTAssertEqual(FMBandDisplay().label(at: marks[0].position), "88.0")
     }
 
-    func testOneDetentIsOneTenth() {
-        let fm = FMBandDisplay()
-        let a = fm.frequency(at: BandPosition(0.3))
-        let b = fm.frequency(at: BandPosition(0.3 + Tuning.detentSpacing))
-        XCTAssertEqual(b - a, 0.1, accuracy: 1e-9)
+    func testFMUnitIsMHz() {
+        XCTAssertEqual(FMBandDisplay().unit(at: BandPosition(0.3)), "MHz")
+    }
+
+    func testTheAppUsesTheWideBand() {
+        XCTAssertTrue(currentBandDisplay is SpectrumDisplay)
+    }
+
+    func testALapIsAWholeNumberOfNotches() {
+        // Otherwise the notches would jump at the seam where the loop joins.
+        let notches = 1 / Tuning.detentSpacing
+        XCTAssertEqual(notches, notches.rounded(), accuracy: 1e-6)
     }
 }

@@ -12,6 +12,7 @@ Revision log:
 - Nov 7 — **The look is real hardware.** The receiver is drawn as the Physicist's hidden workstation, in the style of the UAD plug-ins: realistic controls, cream faceplates, wood, worn paint, amber VU lights, uncluttered. Black-and-white moves to the website. Supersedes the Nov 6 black-and-white app direction and settles device-vs-geometry (§7). Details in **Color.md**. (Entered here Nov 12.)
 - Nov 12 — **Newest decision wins** when sources disagree; the repo docs were brought up to date on that rule. The dial is a real-looking wheel you can see and spin forever, superseding "small, mostly felt." The spectrum analyzer is a real analog instrument, superseding the waterfall as the display. Details in **Instruments.md**.
 - Nov 19 — **Phase 1 sound decisions.** Noise temperature reads as physics (hot = brighter; Still days drain to a low, quiet rumble). The Carrier is heard as a zero-beat whistle that slides down to a hum on center. Its day-turn kink is a dropout. Sound details in **Instruments.md** (decisions 18–20). Detent ticks were also softened after Evan's first feel on the phone (the numbers are in `Tuning.swift`).
+- Nov 19 — **The band is a wide spectrum, radio through light**, not FM. It is what Evan envisions for the Physicist and Hannah. Log-spaced, tuned with one wheel with many more notches. The top stops at light; Evan decided against stretching it to the string (Planck) scale: "it would already be too much to go that far." Details in **Instruments.md** (decision 21).
 
 ---
 
@@ -54,10 +55,11 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 - **Confirmed (Nov 7, restated Nov 12):** **The app looks like real hardware**: the Physicist's workbench, UAD-style. Black-and-white is for the website. (Color.md)
 - **Confirmed (Nov 12):** **The dial is a real-looking wheel you can see and spin forever. The analyzer is a real-world analog instrument.** (Instruments.md)
 - **Confirmed (Nov 12):** **Newest decision wins.** When the docs, the repo or an older decision disagree with something newer Evan has decided, the newer decision stands and the doc gets fixed.
+- **Confirmed (Nov 19):** **The band is a wide spectrum, from radio up through infrared and visible light**, log-spaced, tuned with one bigger wheel. Not the FM band, and not up to the Planck scale. (Instruments decision 21)
 - **Proposed:** A minimal server whose only job is the observation ledger (§4). Everything else stays deterministic on the phone. Not built until the first transmission.
 - **Proposed (Nov 5; in question since Nov 7):** Extend the existing "Asunder" Design System artifact rather than start a new one. Its black-and-white ground now belongs to the website, so whether the app's hardware look joins it or gets its own system is Open (§7, Color.md). ~~Amber retired in the app.~~
 - **Proposed:** The oscilloscope's collection is the 26 Signs, as closed Lissajous figures (Instruments §6).
-- **Open:** Lock tolerance and dropout grace for a whole listen (§5). ~~Device look vs abstract geometry (§7).~~ Resolved Nov 7: device, real hardware. Band range (§5). What the first observer is given (§5). Instruments open list (Instruments §9).
+- **Open:** Lock tolerance and dropout grace for a whole listen (§5). ~~Device look vs abstract geometry (§7).~~ Resolved Nov 7: device, real hardware. ~~Band range (§5).~~ Resolved Nov 19: radio through light. What the first observer is given (§5). Instruments open list (Instruments §9).
 
 ---
 
@@ -128,7 +130,7 @@ Logic Pro ──bounce──> audio files + manifest.json ──upload──> Cl
 
 ### The dial
 - **Confirmed (Nov 12):** it looks like a real radio dial and you can see it: a wheel you spin forever. Its size and place on the bench are Open. (Instruments §0)
-- A band with a range (a real-looking FM band like 87.5–108.0, or an invented one). **Open.** The band is a loop (Confirmed Nov 6, Transmission Rules §8): a wheel with no end stop.
+- ~~A band with a range (a real-looking FM band like 87.5–108.0, or an invented one). **Open.**~~ **Confirmed Nov 19:** a wide spectrum, radio through light (placeholder ends 3 kHz to 1,000 THz), log-spaced so every tenfold gets equal room. The band is a loop (Confirmed Nov 6, Transmission Rules §8): a wheel with no end stop.
 - Rotation has **inertia and friction**: a flick spins and slows; a slow drag tracks the finger exactly.
 - **Detents**: subtle haptic ticks at regular intervals, with a different pulse when a signal locks.
 - The **needle** lags the hand slightly (damping). This is most of what "satisfying" means.
@@ -270,7 +272,7 @@ You have an edge: ten years of signal chains and sequencers. Audio routing is da
 1. ~~Device look or abstract geometry?~~ Resolved Nov 7: device, real hardware (Color.md). Left over: which real instruments the three are modeled on, and how much room each gets on the bench (Instruments §9).
 2. Whether knob settings persist. (Instruments §9) ~~Which instrument is on screen when the app opens.~~ Resolved Nov 6: the bench, all three.
 3. The 26 ratio/phase → Sign mapping. (Instruments §6)
-4. Real FM band or invented band?
+4. ~~Real FM band or invented band?~~ Resolved Nov 19: a wide spectrum, radio through light.
 5. Lock tolerance and dropout grace for a whole listen; whether the chase grace is the same number. (Transmission Rules §7, §9) — matters at Phase 6+.
 6. **What does the first observer get?** — matters at Phase 8.
 7. Day-turn hour. (Transmission Rules §4)

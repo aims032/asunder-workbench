@@ -29,7 +29,8 @@ final class DialModel {
     init(start: Double = 0.5, haptics: Haptics = Haptics(), audio: ReceiverAudio) {
         // Built in a local first: an @Observable class can't read its own
         // properties until every one of them has a value.
-        let startState = DialPhysics(start: start)
+        var startState = DialPhysics(start: start)
+        startState.snapPoints = [Carrier.position]   // the wheel snaps onto features
         physics = startState
         self.haptics = haptics
         self.audio = audio
