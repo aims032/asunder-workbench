@@ -5,9 +5,12 @@ import AsunderCore
 /// in the middle, the wheel at the bottom. Plain drawings only: the real look
 /// is Evan's artwork in Phase 4, and how much room the dial gets is OPEN.
 struct ContentView: View {
-    @State private var dial = DialModel()
+    let bench: Bench
+    @Environment(\.scenePhase) private var scenePhase
     private let clock = AsunderClock()
     private let display = currentBandDisplay
+
+    private var dial: DialModel { bench.dial }
 
     var body: some View {
         ZStack {
@@ -20,10 +23,14 @@ struct ContentView: View {
                 Spacer()
 
                 // The readout follows the needle, so it lags the hand slightly too.
-                Text(display.label(at: dial.needle))
-                    .font(.system(size: 64, weight: .light, design: .monospaced))
-                    .foregroundStyle(Color(white: 0.85))
-                    .monospacedDigit()
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(display.label(at: dial.needle))
+                        .font(.system(size: 64, weight: .light, design: .monospaced))
+                        .monospacedDigit()
+                    Text(display.unit(at: dial.needle))
+                        .font(.system(size: 20, weight: .light, design: .monospaced))
+                }
+                .foregroundStyle(Color(white: 0.85))
 
                 BandScaleView(needle: dial.needle, display: display)
                     .frame(height: 44)
@@ -38,6 +45,12 @@ struct ContentView: View {
                     .padding(.horizontal, 28)
                     .padding(.bottom, 28)
             }
+        }
+        // The radio turns on when the app opens, and comes back on if something
+        // (a call, another app's audio) stopped it while the app was away.
+        // If it was turned off on purpose, it stays off until the dial is touched.
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active { bench.audio.resumeIfOn() }
         }
     }
 
@@ -55,5 +68,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(bench: Bench())
 }

@@ -38,4 +38,26 @@ public enum World {
     /// How many days the pattern shifts each week. 3 and 7 share no factors,
     /// so the schedule visits all 7 rotations and repeats every 7 weeks (49 days).
     public static let weeklyAdvance = 3
+
+    // MARK: The Carrier (Instruments §3)
+
+    /// Where the Carrier lives. It never moves.
+    /// PLACEHOLDER: no position has been chosen. 68/205 of the way round reads
+    /// about 19.92 MHz on the wide band (shortwave, where zero-beat whistles
+    /// live). It read 94.3 on the old FM band; the position itself didn't move.
+    public static let carrierPosition = BandPosition(68.0 / 205.0)
+
+    /// At every day turn the Carrier drops out for this many seconds, then comes
+    /// back: its "kink" (Confirmed Nov 19: the kink is a dropout).
+    /// PROPOSED length; how long is still a choice.
+    public static let carrierDropoutSeconds: Double = 1.5
+
+    // MARK: The static (Instruments §2)
+
+    /// At each day turn the static glides from yesterday's temperature to
+    /// today's over this many seconds (0 = it snaps at the turn). It's here and
+    /// not in Tuning because every phone should shift at the same moment: it's
+    /// the "shift in the floor" a listener can hear, and later see on the analyzer.
+    /// PROPOSED: about half a minute.
+    public static let temperatureGlideSeconds: Double = 30
 }

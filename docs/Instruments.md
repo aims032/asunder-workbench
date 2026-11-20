@@ -2,7 +2,7 @@
 
 Started Nov 6, 2026. What the app is before the first transmission, and the suite of instruments the Physicist cobbled together to see past the veil. Status tags: **Confirmed** (Evan decided), **Proposed** (Claude's recommendation), **Open**.
 
-Updated in the repo Nov 12, 2026: the look, the dial and the analyzer (decisions 13–17). Where an older entry says "waterfall", read "the analyzer".
+Updated in the repo Nov 12, 2026: the look, the dial and the analyzer (decisions 13–17). Where an older entry says "waterfall", read "the analyzer". Updated Nov 19, 2026: how the static and the Carrier sound (decisions 18–20), and the wide band (decision 21).
 
 Decisions from the Nov 6 session:
 1. **Confirmed:** No transmission at launch. The first transmission is an **event**, not a feature. The app has to stand on its own before it, as a toy and a game.
@@ -26,6 +26,13 @@ Decisions from Nov 7 and Nov 12. Newest wins: these override anything older in t
 15. **Confirmed (Nov 12):** **The dial is a real-looking radio dial you can see and spin forever.** A wheel with no end stop is the preferred form. It loops back on itself the way the experience of time does in the Asunder: circular, a snake eating its own tail. You tune through channels and pick out frequencies from or within the Asunder, and it is where the first pieces of dialogue are found, by accident or on purpose. Supersedes 11.
 16. **Confirmed (Nov 12):** **The spectrum analyzer is a real-world analog instrument**, in keeping with the dial. Working read Evan accepted: a glowing CRT trace. Whether it also keeps a history on paper waits until it is built (§4). Supersedes the waterfall as the display.
 17. **Evan's current read, not settled (Nov 12):** the oscilloscope is another dimension of what the analyzer is showing, and could be another visual sign that you have landed on a dialogue frequency (§5).
+
+Decisions from Nov 19 (Phase 1 sound). Newest wins.
+18. **Confirmed (Nov 19):** **Noise temperature reads as physics**, not studio talk. Hot = more energy = brighter: moving days hiss more and sound restless. Cold = Still days: the hiss drains out and leaves a lower, darker, quieter rumble. (§2)
+19. **Confirmed (Nov 19):** **The Carrier is heard as a zero-beat whistle**, the way a shortwave set sounds: off to the side a whistle, its pitch sliding down as you tune toward center, settling to a low hum dead on. Strength still follows the bell curve. Refines "a faint, steady line" (§3) for the ear; on the analyzer it is still one steady line.
+20. **Confirmed (Nov 19):** **The Carrier's day-turn kink is a dropout.** At every day turn it cuts out for a second or two, then comes back, on every phone at the same moment. Length is Proposed (1.5 s). (§3)
+21. **Confirmed (Nov 19):** **The band is a wide spectrum, from radio up through infrared and visible light**, the bench Evan envisions for the Physicist and Hannah. Numbers are log-spaced, so every tenfold gets equal room, the way wideband analyzers draw it. One wheel with many more notches, not a band switch. The top stops at light: Evan chose not to stretch it to the string (Planck) scale, "it would already be too much to go that far." Exact ends are placeholders (3 kHz to 1,000 THz).
+   - *Physics hygiene (Claude, Nov 19):* strings vibrate around 10⁴³ Hz, far past anything a bench can receive. The band is what the Physicist's equipment can hear, not what the Asunder is made of; strings stay his theory of the place (Theoretical Concepts). **Proposed:** the vibration idea lives on the bench in ratios, the simple ratios that close a figure on the scope and set the Breathers' rhythms (§5, §6), not in the band's range.
 
 ---
 
@@ -70,6 +77,7 @@ The noise bed is the floor everything sits on. It should never loop or repeat, w
 
 - **Source:** an AVAudioEngine source node generating noise at full sample rate. Three colors mixed: white (hiss), pink (room), brown (rumble). The mix is the **noise temperature**.
 - **Temperature follows the clock.** Warm on moving days, cooler and quieter on Still days. The day turn is audible if you're listening and visible on the analyzer as a shift in the floor.
+- **Which way is warm (Confirmed Nov 19, decision 18):** physics. Hot noise is brighter: moving days lean white, restless hiss. Still days are cold: the hiss drains out and a low, quiet brown rumble is left. At the turn the static glides from one to the other over about half a minute (Proposed).
 - **Off-center tuning thins it** through the same EQ path a signal uses, so static and signal are one chain, not two.
 - **Later:** blindness B raises the floor. At launch there is no B; the floor is just weather you learn to read.
 
@@ -81,12 +89,14 @@ The "frequencies that act a certain way." These are structures in the noise, not
 
 | Feature | What it is | How it behaves | Which law it teaches |
 | --- | --- | --- | --- |
-| **Carrier** | A faint, steady line. Always there. | Never moves. A kink at every day turn. | Anchor. The band has a home. |
+| **Carrier** | A faint, steady line. Always there. Heard as a zero-beat whistle that slides down to a hum on center (Nov 19). | Never moves. A kink at every day turn: a dropout of a second or two (Nov 19). | Anchor. The band has a home. |
 | **Pulse** | A tone that appears for a few seconds. | Same frequency, same second of the day, every moving day. Silent on Still days. | "When matters." (Rung 2.) |
 | **Walker** | A tone that is somewhere new each day. | Steps across the band by the day's rule (§4 of Transmission Rules) from its own seed. Holds on Still days. | A shape: a walk, a flinging, a ritual. (Rung 3.) |
 | **Breather** | A line whose brightness swells and fades. | Period fixed per feature; phase from the clock. Two breathers at a ratio are the scope's first target (§6). | Period. Two things in time with each other. |
 
 Rules carried from Transmission Rules without change: the week and its three-day advance; Still days hold everything; positions wrap because the band is a loop.
+
+**On hold (Evan, Nov 19):** no new features go on the band yet. Now that the band is a wide spectrum, radio through light (decision 21), Evan wants to develop the logic of *why* things behave the way they do on it before any are placed: what each feature is, why it lives where it does, why it moves. The table above stays as background. Lineup, voices and placement wait for him.
 
 **Why run the real rules before launch.** A listener who has watched the analyzer for a month knows the band's habits the night the first transmission arrives, and sees at once that the new line *doesn't behave like interference*. The regulars recognize a stranger. That's what makes the first transmission an event. The terminal can carry the hints for these pages from day one; nothing on the band confirms a rule until there's a voice to confirm it with.
 

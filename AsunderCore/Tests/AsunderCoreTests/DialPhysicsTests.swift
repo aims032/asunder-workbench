@@ -143,6 +143,36 @@ final class DialPhysicsTests: XCTestCase {
         XCTAssertEqual(at60, at120, accuracy: max(at60, at120) * 0.1 + 2 * detent)
     }
 
+    // MARK: Lock-on snap
+
+    func testRestingNearASnapPointSettlesOnIt() {
+        let point = BandPosition(0.4 + 0.37 * detent)        // between two notches
+        var dial = DialPhysics(start: 0.4 + 0.1 * detent)    // near the notch at 0.4
+        dial.snapPoints = [point]
+        dial.grab(); dial.release()
+        runToRest(&dial)
+        XCTAssertEqual(dial.band.value, point.value, accuracy: 1e-9)
+    }
+
+    func testFarFromASnapPointItSettlesOnANotch() {
+        var dial = DialPhysics(start: 0.4)
+        dial.snapPoints = [BandPosition(0.4 + 5 * detent)]
+        dial.grab(); dial.release()
+        runToRest(&dial)
+        XCTAssertTrue(isOnANotch(dial.position))
+    }
+
+    func testSnapWorksAcrossTheSeam() {
+        // A snap point just past the top of the band, approached from three laps up.
+        let point = BandPosition(0.2 * detent)
+        var dial = DialPhysics(start: 3 - 0.2 * detent)
+        dial.snapPoints = [point]
+        dial.grab(); dial.release()
+        runToRest(&dial)
+        XCTAssertEqual(dial.band.value, point.value, accuracy: 1e-9)
+        XCTAssertEqual(dial.position, 3 + 0.2 * detent, accuracy: 1e-9, "same lap, no spin round")
+    }
+
     // MARK: Detents
 
     func testDetentIndexChangesHalfwayBetweenNotches() {

@@ -58,6 +58,11 @@ public struct AsunderClock {
         wrapUnit(secondsSinceFirstTurn(date) / Self.secondsPerDay)
     }
 
+    /// Seconds since the most recent day turn, 0..<86400.
+    public func secondsIntoDay(at date: Date) -> Double {
+        dayProgress(at: date) * Self.secondsPerDay
+    }
+
     // MARK: Rules
 
     /// The rule for a given day: P[(k + 3w) mod 7]. Pure math, no clock.

@@ -34,17 +34,19 @@ Swift + SwiftUI, AVAudioEngine, Core Haptics, Xcode → TestFlight → App Store
 **Phase 1, the dial + static.** Done when Evan can hand the phone to someone with no explanation and they keep playing with it for a minute.
 
 Build:
-1. **The band.** A loop, with positions normalized to 0–1 that wrap (Confirmed). Show frequency through a separate display mapping, because whether it's a real FM band (87.5–108.0) or an invented one is still Open. Default to FM-looking numbers behind one function.
+1. **The band.** A loop, with positions normalized to 0–1 that wrap (Confirmed). Show frequency through a separate display mapping. ~~Whether it's a real FM band (87.5–108.0) or an invented one is still Open.~~ Confirmed Nov 19: a wide spectrum, radio up through visible light, log-spaced, on one wheel with many more notches (`SpectrumDisplay`). Not up to the Planck scale.
 2. **The dial.** A real-looking radio dial you can see and spin forever (Confirmed Nov 12; supersedes "small, mostly felt"). A wheel with no end stop is the preferred form. Which kind of wheel is Open, so build the proposed **edge-on thumbwheel** (a strip rolled sideways) behind a protocol so a face-on wheel or a knob can be swapped in. Its size and place on the bench are Open too. It has inertia and friction: a flick spins and coasts, and a slow drag tracks the finger exactly. There's no end stop because the band is a loop. A needle and readout lag the hand slightly (damping). Most of what "satisfying" means comes from this. In Phase 1 the dial is a plain placeholder drawing; the feel is the job.
 3. **Haptics.** A detent tick at regular intervals, and a distinct pulse when you're centered on a feature.
-4. **Generated static.** An AVAudioSourceNode at full sample rate. It never loops. It mixes white, pink and brown noise; that mix is the "noise temperature." It runs warmer on moving days and cooler and quieter on Still days. Static and signal share one chain: tuning off-center thins it through the same EQ path a signal will use later.
+4. **Generated static.** An AVAudioSourceNode at full sample rate. It never loops. It mixes white, pink and brown noise; that mix is the "noise temperature." It runs warmer on moving days and cooler and quieter on Still days, read as physics (Confirmed Nov 19): hot = brighter, more hiss; Still days drain to a low, quiet rumble. Static and signal share one chain: tuning off-center thins it through the same EQ path a signal will use later.
 5. **The shared clock.** UTC minus an Asunder epoch. The epoch is Open, so use a placeholder constant set to a Sunday 00:00 UTC. The day turns at 00:00 UTC (Proposed). The week rule (Transmission Rules §4):
    ```
    P = [W, L, S, R, W, S, L]      // S = Still day
    rule(k, w) = P[(k + 3w) mod 7] // k = day of week (0 = Sunday, UTC), w = weeks since epoch
    ```
-6. **One Carrier feature.** A faint, steady tone at a fixed position that never moves, with a kink at every day turn (Instruments §3). Its strength is a bell curve on the distance from the dial to center.
+6. **One Carrier feature.** A faint, steady tone at a fixed position that never moves, with a kink at every day turn (Instruments §3). Its strength is a bell curve on the distance from the dial to center. Confirmed Nov 19: it's heard as a zero-beat whistle (pitch slides down as you tune in, a low hum dead on), and the kink is a dropout of a second or two.
 7. **Background audio.** Declare the audio background mode so it keeps playing with the screen off. Test it as a radio, not a toy.
+
+**Status (Nov 19):** Phase 1 is built (PR #4, waiting for Evan to hear it on his phone). Phase 2 has started on its own branch (PR #5, stacked on #4) with the wide band only. **Weather features are on hold** until Evan has worked out why things behave the way they do on the spectrum (Instruments §3). Don't place features or pick their behavior before then.
 
 Out of scope for Phase 1: the analyzer, scope and terminal (Phases 3+), the finished look (Phase 4; Phase 1 screens are plain placeholders, see Look above), transmissions, the Shatter, the server, and login (there is none, Confirmed).
 
