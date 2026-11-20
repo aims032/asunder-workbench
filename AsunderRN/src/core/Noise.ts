@@ -191,6 +191,19 @@ export function randomNextSigned(random: NoiseRandom): number {
   return (top53 / 9007199254740992) * 2 - 1;
 }
 
+/**
+ * Fills the first `count` places of `out` with numbers between -1 and 1, the
+ * same ones `count` calls to randomNextSigned would give, in the same order.
+ * chainRender asks for a whole stretch at once (three per sample: white,
+ * pink, brown) instead of one at a time, so the sound loop itself only reads
+ * from a list. Creates nothing new in memory.
+ */
+export function noiseFillRandoms(random: NoiseRandom, out: Float64Array, count: number): void {
+  for (let i = 0; i < count; i += 1) {
+    out[i] = randomNextSigned(random);
+  }
+}
+
 // MARK: The three colors
 
 // LOCKED SOUND CONSTANTS: the three scale numbers just below, brownMemory, and
@@ -201,18 +214,18 @@ export function randomNextSigned(random: NoiseRandom): number {
 // Tuning.ts.
 
 /** Loudness matching so white comes out about as loud as the others. Measured, not derived: see the noise tests. Locked. */
-const whiteScale = 0.52;
+export const whiteScale = 0.52;
 /** Same, for pink. Locked. */
-const pinkScale = 0.169;
+export const pinkScale = 0.169;
 /** Same, for brown. Locked. */
-const brownScale = 0.514;
+export const brownScale = 0.514;
 
 /**
  * How much each brown sample remembers the last one. Just under 1 makes a
  * rumble that can't drift away; the "leak" sits at about 38 Hz at 48 kHz.
  * Locked, see above.
  */
-const brownMemory = 0.995;
+export const brownMemory = 0.995;
 
 /**
  * The state of the static generator: the latest sample of each color, plus
@@ -260,22 +273,15 @@ export function createNoiseSource(seed: number): NoiseSource {
 }
 
 /**
- * Makes all three colors at once, one sample of each. Each color is filtered
- * from its own fresh random numbers, so the three are independent of each
- * other (if they shared one stream they'd partly move together and the mix
- * would come out louder than its `level` says). Each comes out at about the
- * same loudness (RMS ~0.3), so the temperature weights alone decide the mix.
- * Afterwards read them from noise.white, noise.pink and noise.brown (nothing
- * is handed back, so nothing new is created in memory on the audio thread).
+ * The filtering half of noiseNext: turns three random numbers (white, pink,
+ * brown, each -1...1) into the next sample of each color, stored in
+ * noise.white, noise.pink and noise.brown. chainRender does these same sums
+ * written out in its loop; if you change this, change chainRender to match.
  *
  * The pink filter numbers below are locked (see "LOCKED SOUND CONSTANTS"
  * above): do not tune here.
  */
-export function noiseNext(noise: NoiseSource): void {
-  const w = randomNextSigned(noise.random); // for white
-  const p = randomNextSigned(noise.random); // for pink
-  const b = randomNextSigned(noise.random); // for brown
-
+export function noiseShape(noise: NoiseSource, w: number, p: number, b: number): void {
   noise.b0 = 0.99886 * noise.b0 + p * 0.0555179;
   noise.b1 = 0.99332 * noise.b1 + p * 0.0750759;
   noise.b2 = 0.96900 * noise.b2 + p * 0.1538520;
@@ -292,6 +298,22 @@ export function noiseNext(noise: NoiseSource): void {
   noise.white = w * whiteScale;
   noise.pink = pink * pinkScale;
   noise.brown = noise.brownState * brownScale;
+}
+
+/**
+ * Makes all three colors at once, one sample of each. Each color is filtered
+ * from its own fresh random numbers, so the three are independent of each
+ * other (if they shared one stream they'd partly move together and the mix
+ * would come out louder than its `level` says). Each comes out at about the
+ * same loudness (RMS ~0.3), so the temperature weights alone decide the mix.
+ * Afterwards read them from noise.white, noise.pink and noise.brown (nothing
+ * is handed back, so nothing new is created in memory on the audio thread).
+ */
+export function noiseNext(noise: NoiseSource): void {
+  const w = randomNextSigned(noise.random); // for white
+  const p = randomNextSigned(noise.random); // for pink
+  const b = randomNextSigned(noise.random); // for brown
+  noiseShape(noise, w, p, b);
 }
 
 // MARK: Temperature

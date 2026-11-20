@@ -1,7 +1,7 @@
 // Building blocks for the receiver's sound: a filter and a smoother. chainRender
-// calls filterSetCutoff and filterProcess on the audio thread (see src/audio).
-// It does smoothedStep's sum itself, written out in its loop, to save a call per
-// knob per sample; if you change smoothedStep, change chainRender to match.
+// calls filterSetCutoff on the audio thread (see src/audio). It does
+// filterProcess's and smoothedStep's sums itself, written out in its loop, to
+// save calls on every sample; if you change either, change chainRender to match.
 //
 // The `'worklet';` line below marks every function in this file as safe to copy
 // over to the audio thread, which runs its own separate copy of the code.
