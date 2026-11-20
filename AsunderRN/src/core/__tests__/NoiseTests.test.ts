@@ -4,6 +4,7 @@ import {
   createNoiseSource,
   noiseColorBetween,
   noiseColorGains,
+  noiseFillRandoms,
   noiseNext,
   randomNext,
   randomNextSigned,
@@ -35,12 +36,11 @@ function makeColors(seed: number = 1, count: number = 480_000): Colors {
   return { white: w, pink: p, brown: b };
 }
 
-/// The next raw 64-bit number, as text. Swift compared two UInt64 values
-/// directly. Here the number arrives as two 32-bit halves, so the halves are
-/// joined into one string: two strings match exactly when both halves match.
+/// The next raw 32-bit number, as text (kept as text so the tests below read
+/// the same as they did when the number came in two halves).
 function nextRaw(random: NoiseRandom): string {
   randomNext(random);
-  return `${random.outHi}:${random.outLo}`;
+  return `${random.out}`;
 }
 
 /// Somewhere for noiseColorGains to write its three answers.
@@ -86,6 +86,54 @@ describe('NoiseTests', () => {
       const v = randomNextSigned(r);
       expect(v >= -1 && v < 1).toBe(true);
     }
+  });
+
+  // These two are new with the Nov 20 generator (no Swift counterpart). The
+  // expected numbers come from the published C code for SplitMix64 and
+  // xoshiro128** (prng.di.unimi.it), compiled and run on Nov 20, 2026:
+  // the seed goes through SplitMix64 twice, its two 64-bit answers become
+  // the four 32-bit words (bottom half first), then xoshiro128** runs.
+  const reference = [
+    { seed: 0, state: [2065550767, 3793791033, 2713282036, 1853398634], next: [3737715805, 2584255861, 2876756834, 3286328325, 1553311962, 1625202774, 3260698944, 2754151956] },
+    { seed: 1, state: [2298633409, 2433363436, 1703865447, 3203108257], next: [1695105466, 1423115009, 634581793, 1068227753, 716759206, 4186505319, 3777694425, 2710820970] },
+    { seed: 2, state: [479680206, 2539140574, 201072194, 3217573392], next: [1086064458, 2256779072, 556893360, 1218312803, 4005656520, 1519932757, 2579561883, 839593612] },
+    { seed: 99, state: [1279749091, 1123264822, 2275240356, 135969048], next: [1784627295, 697397638, 3796439119, 926223249, 2914072428, 2531196325, 91435098, 1171049374] },
+    { seed: 1763650000000, state: [2286253491, 2826543512, 2975193490, 2445097005], next: [2964577613, 3149186627, 2055890330, 711398850, 3460159795, 390886369, 2918360666, 241314766] },
+    { seed: 9007199254740991, state: [4021704095, 616124332, 3074421144, 818148089], next: [1233166643, 1287031142, 661813442, 2960669951, 2601079046, 1036114921, 2300589652, 2591400186] },
+  ];
+
+  test('testMatchesThePublishedReferenceCode', () => {
+    for (const row of reference) {
+      const r = createNoiseRandom(row.seed);
+      expect([r.s0, r.s1, r.s2, r.s3]).toEqual(row.state);
+      const got: number[] = [];
+      for (let i = 0; i < row.next.length; i += 1) {
+        randomNext(r);
+        got.push(r.out);
+      }
+      expect(got).toEqual(row.next);
+    }
+    // And far along: the millionth number from seed 1.
+    const far = createNoiseRandom(1);
+    for (let i = 0; i < 1_000_000; i += 1) {
+      randomNext(far);
+    }
+    expect(far.out).toBe(637055319);
+  });
+
+  test('testFillGivesExactlyWhatSignedGives', () => {
+    // noiseFillRandoms is randomNextSigned written out in a loop; they must
+    // agree number for number, including across several fills in a row.
+    const one = createNoiseRandom(42);
+    const many = createNoiseRandom(42);
+    const list = new Float64Array(777);
+    for (const size of [1, 2, 3, 128, 777, 500]) {
+      noiseFillRandoms(many, list, size);
+      for (let i = 0; i < size; i += 1) {
+        expect(list[i]).toBe(randomNextSigned(one));
+      }
+    }
+    expect([many.s0, many.s1, many.s2, many.s3, many.out]).toEqual([one.s0, one.s1, one.s2, one.s3, one.out]);
   });
 
   // MARK: The three colors

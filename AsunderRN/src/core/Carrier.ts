@@ -86,8 +86,9 @@ export function createCarrierOscillator(): CarrierOscillator {
 
 /**
  * The next sample at `pitch` Hz, between -1 and 1.
- * Called once per sample on the audio thread (from chainRender), so it only
- * does plain arithmetic and creates nothing new. It changes `oscillator.phase`.
+ * chainRender does these same sums written out in its loop (to save a call
+ * per sample); if you change this, change chainRender to match. It only does
+ * plain arithmetic and creates nothing new. It changes `oscillator.phase`.
  */
 export function oscillatorNext(
   oscillator: CarrierOscillator,
