@@ -55,6 +55,8 @@ Build:
 
 **Status (Nov 19):** Phase 1 is built (PR #4, waiting for Evan to hear it on his phone). Phase 2 has started on its own branch (PR #5, stacked on #4) with the wide band only. **Weather features are on hold** until Evan has worked out why things behave the way they do on the spectrum (Instruments §3). Don't place features or pick their behavior before then.
 
+**Status (Nov 20):** Phase 3 has started with the spectrum analyzer (`AsunderRN/src/analyzer`, core in `src/core/Analyzer.ts`): a hybrid digital/analog instrument modeled on the Keysight N9032B, swept from the band (not an FFT of the sound), with a spectrogram, above the dial (Instruments decisions 22–25). Its feel numbers are `AnalyzerTuning` in `Tuning.ts`, kept apart from `Tuning` because the Swift parity test checks `Tuning`'s names against `Tuning.swift`. The scope is next.
+
 Out of scope for Phase 1: the analyzer, scope and terminal (Phases 3+), the finished look (Phase 4; Phase 1 screens are plain placeholders, see Look above), transmissions, the Shatter, the server, and login (there is none, Confirmed).
 
 Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` (epoch, day index, rule of the day), `DialView` + `DialPhysics`, `AudioEngine` (noise source → EQ → mixer, plus a feature oscillator), `Haptics`, `Tuning.swift`. Write unit tests for the clock and the wrap math, since every phone has to compute the same band.

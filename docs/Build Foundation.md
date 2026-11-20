@@ -13,6 +13,7 @@ Revision log:
 - Nov 12 — **Newest decision wins** when sources disagree; the repo docs were brought up to date on that rule. The dial is a real-looking wheel you can see and spin forever, superseding "small, mostly felt." The spectrum analyzer is a real analog instrument, superseding the waterfall as the display. Details in **Instruments.md**.
 - Nov 19 — **Phase 1 sound decisions.** Noise temperature reads as physics (hot = brighter; Still days drain to a low, quiet rumble). The Carrier is heard as a zero-beat whistle that slides down to a hum on center. Its day-turn kink is a dropout. Sound details in **Instruments.md** (decisions 18–20). Detent ticks were also softened after Evan's first feel on the phone (the numbers are in `Tuning.swift`).
 - Nov 19 — **The band is a wide spectrum, radio through light**, not FM. It is what Evan envisions for the Physicist and Hannah. Log-spaced, tuned with one wheel with many more notches. The top stops at light; Evan decided against stretching it to the string (Planck) scale: "it would already be too much to go that far." Details in **Instruments.md** (decision 21).
+- Nov 20 — **The analyzer is built (Phase 3 begins).** It is a hybrid digital and analog instrument modeled on the Keysight N9032B, superseding "analog CRT". Its trace is swept from the band, not an FFT of the sound. It keeps a history as a spectrogram. It sits above the dial. Details in **Instruments.md** (decisions 22–25).
 - Nov 19 — **React Native (Expo) for iPhone and Android, from one codebase.** Evan chose to port the Swift app so one set of code covers iPhone, Android and a web browser. iPhone and Android are the product; the web build is a preview. Expo and third-party libraries are approved. The Swift app stays in the repo untouched, for side-by-side comparison. Supersedes "Swift on iPhone first, Android later as a Kotlin port" (Nov 5) and "no third-party dependencies." §2 and §3 are rewritten below; the port is in `AsunderRN/`.
 
 ---
@@ -57,6 +58,7 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 - **Confirmed (Nov 12):** **The dial is a real-looking wheel you can see and spin forever. The analyzer is a real-world analog instrument.** (Instruments.md)
 - **Confirmed (Nov 12):** **Newest decision wins.** When the docs, the repo or an older decision disagree with something newer Evan has decided, the newer decision stands and the doc gets fixed.
 - **Confirmed (Nov 19):** **The band is a wide spectrum, from radio up through infrared and visible light**, log-spaced, tuned with one bigger wheel. Not the FM band, and not up to the Planck scale. (Instruments decision 21)
+- **Confirmed (Nov 20):** **The analyzer is a hybrid digital/analog instrument modeled on the Keysight N9032B**, swept from the band, with a spectrogram for history, above the dial. Supersedes "real-world analog instrument" (Nov 12). (Instruments decisions 22–25)
 - **Proposed:** A minimal server whose only job is the observation ledger (§4). Everything else stays deterministic on the phone. Not built until the first transmission.
 - **Proposed (Nov 5; in question since Nov 7):** Extend the existing "Asunder" Design System artifact rather than start a new one. Its black-and-white ground now belongs to the website, so whether the app's hardware look joins it or gets its own system is Open (§7, Color.md). ~~Amber retired in the app.~~
 - **Proposed:** The oscilloscope's collection is the 26 Signs, as closed Lissajous figures (Instruments §6).
@@ -322,6 +324,6 @@ You have an edge: ten years of signal chains and sequencers. Audio routing is da
 8. Does observing the Asunder cost anything? (Transmission Rules §6)
 9. Does the app acknowledge the community layer, or stay silent?
 10. Signal meter: spectrum display or simple meter? (Partly answered by the analyzer.)
-11. Does the analyzer keep a history, on paper? Waits for Phase 3. (Instruments §4)
+11. ~~Does the analyzer keep a history, on paper?~~ Resolved Nov 20: a spectrogram. (Instruments decision 24)
 
 Resolved since first draft: moving patterns for wholes (wholes sit at home; only fragments move); which patterns ship first (the three rules); fragment cuts (at marked boundaries); the band is a loop; what's good with ten listeners (the band is alive from the clock alone; see Instruments.md); the look (a device, real hardware; Nov 7).

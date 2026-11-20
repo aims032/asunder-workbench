@@ -20,9 +20,11 @@ Sync note: the claude.ai project's own docs may hold more detail on the Nov 7 lo
 - **Proposed, for builders:** until the look phase (Build Foundation §9, Phase 4), screens are plain placeholders. Keep each control's behavior in code and its picture separate, so Evan's artwork can drop in. Don't generate final art, and don't style ahead of it.
 - **Flag (Claude, Nov 12):** this is the most art-heavy direction. Looks like UAD's are typically made from 3D renders and photographs rather than drawn. Nothing before the look phase depends on it.
 
-## Reference instruments (offered Nov 12, none chosen)
+## Reference instruments
 
-Real analog gear Claude showed Evan as starting points for the analyzer. He accepted "a glowing CRT trace" as the working read (Instruments §4) and has not picked a model.
+**Confirmed (Nov 20): the analyzer is modeled on the Keysight N9032B**, a modern swept signal analyzer: a big digital screen in a hardware chassis with hard keys and a rotary knob. Evan's words: "a hybrid between a digital and analogue interface." The screen is built in Phase 3 (dark glass, a 10 x 10 grid, an amber glowing trace, a spectrogram in amber); the chassis waits for his art. Amber for the trace and spectrogram is a placeholder in `AsunderRN/src/analyzer/AnalyzerScreen.tsx`.
+
+Offered Nov 12, before the N9032B was chosen: real analog gear Claude showed Evan as starting points for the analyzer. He accepted "a glowing CRT trace" as the working read then.
 
 - **Sequerra Model 1**, a 1970s FM tuner: a scope built in beside the tuning dial. One mode shows nearby stations as spikes.
 - **HP 141T**, a lab spectrum analyzer: one glowing trace on a small CRT, with knobs all around it.
@@ -30,7 +32,7 @@ Real analog gear Claude showed Evan as starting points for the analyzer. He acce
 
 ## Open
 
-1. Which real instruments the dial, the analyzer and the scope are each modeled on.
+1. Which real instruments the dial and the scope are each modeled on. (The analyzer: the Keysight N9032B, Nov 20.)
 2. Whether color from the signal (the Nov 6 rules below) has any role in the app, for example in a trace or an indicator lamp.
 3. Whether the app's hardware look joins the existing "Asunder" Design System artifact as a second surface, or gets its own system (Build Foundation §7).
 
