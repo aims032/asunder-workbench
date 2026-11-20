@@ -72,6 +72,8 @@ Suggested shape: `BandModel` (positions, wrap, display mapping), `AsunderClock` 
 
 ## Repo layout
 
+Branches (Nov 19): **`main`** is the React Native app, with the Swift code kept beside it for comparison. **`swift`** is the Swift-only app frozen as of Phase 2a (the wide band); don't build on it. New work branches off `main`. The first, unmerged Phase 1 attempt is saved as the tag `archive/phase1-first-attempt`.
+
 - `AsunderRN/`: **the React Native app (iPhone, Android, web preview).** Start with `AsunderRN/README.md`, which says how to run it.
   - `src/core/`: the pure logic (band, clock, dial physics, the sound chain, `Tuning.ts`). It must not import React, React Native or any library, so it tests anywhere. Every file starts with `'worklet';` so it can also run on the audio and screen threads; because of that, a helper function must be written ABOVE the first place it is used.
   - `src/dial/`, `src/audio/`, `src/haptics/`, `App.tsx`: the app itself. A file ending `.native.ts` is for phones and `.web.ts` is for the browser.
