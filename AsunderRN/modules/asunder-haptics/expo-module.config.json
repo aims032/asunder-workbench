@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["AsunderHapticsModule"] },
+  "android": { "modules": ["expo.modules.asunderhaptics.AsunderHapticsModule"] }
+}
