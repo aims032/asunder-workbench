@@ -13,6 +13,7 @@ Revision log:
 - Nov 12 — **Newest decision wins** when sources disagree; the repo docs were brought up to date on that rule. The dial is a real-looking wheel you can see and spin forever, superseding "small, mostly felt." The spectrum analyzer is a real analog instrument, superseding the waterfall as the display. Details in **Instruments.md**.
 - Nov 19 — **Phase 1 sound decisions.** Noise temperature reads as physics (hot = brighter; Still days drain to a low, quiet rumble). The Carrier is heard as a zero-beat whistle that slides down to a hum on center. Its day-turn kink is a dropout. Sound details in **Instruments.md** (decisions 18–20). Detent ticks were also softened after Evan's first feel on the phone (the numbers are in `Tuning.swift`).
 - Nov 19 — **The band is a wide spectrum, radio through light**, not FM. It is what Evan envisions for the Physicist and Hannah. Log-spaced, tuned with one wheel with many more notches. The top stops at light; Evan decided against stretching it to the string (Planck) scale: "it would already be too much to go that far." Details in **Instruments.md** (decision 21).
+- Nov 19 — **React Native (Expo) for iPhone and Android, from one codebase.** Evan chose to port the Swift app so one set of code covers iPhone, Android and a web browser. iPhone and Android are the product; the web build is a preview. Expo and third-party libraries are approved. The Swift app stays in the repo untouched, for side-by-side comparison. Supersedes "Swift on iPhone first, Android later as a Kotlin port" (Nov 5) and "no third-party dependencies." §2 and §3 are rewritten below; the port is in `AsunderRN/`.
 
 ---
 
@@ -37,7 +38,7 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 
 ## 2. Decisions so far
 
-- **Confirmed:** Native iPhone app in Swift first. Android later, as a port, once the design has stopped moving.
+- **Confirmed (Nov 19):** **One React Native (Expo) codebase for iPhone and Android.** A web build comes from the same code as a preview only. The Swift app is kept in the repo, untouched, to compare against. ~~Native iPhone app in Swift first. Android later, as a port, once the design has stopped moving.~~ (§3)
 - **Confirmed:** First milestone is the dial itself: a satisfying wheel people want to play with, with precise frequencies to catch.
 - **Confirmed (Nov 6):** **The receiver is a suite of instruments**, not a dial alone. Dial, spectrum analyzer, oscilloscope first. (Instruments.md) *The analyzer was a waterfall on Nov 6; as a display that was superseded Nov 12.*
 - **Confirmed (Nov 6):** **No transmission at launch.** The app stands on its own as a toy and a game; the first transmission is an in-world event. (Instruments §7)
@@ -63,7 +64,50 @@ Plus one thing that cuts across all of them: the **design system**, the shared v
 
 ---
 
-## 3. Stack (Confirmed: Swift on iPhone)
+## 3. Stack (Confirmed Nov 19: React Native with Expo, iPhone and Android)
+
+| Layer | Tool | What it is |
+| --- | --- | --- |
+| Language | **TypeScript** | JavaScript with types: the editor and a checker (`tsc`) catch mistakes before the app runs. One language for both phones and the web preview. |
+| Framework | **React Native + Expo** | React Native draws real native screens from TypeScript. Expo is the toolkit around it: it generates the iPhone and Android projects, runs the app on a phone or simulator, and builds it for the stores. |
+| Screens | **React components** | Describe what the screen should look like given its state; React redraws it. (The same idea as SwiftUI.) |
+| Dial motion | **Reanimated + Gesture Handler** | Run the dial's physics and the finger tracking on the screen thread, so the wheel never waits for the rest of the app. |
+| Drawing | **Skia** | A 2D drawing library: the wheel and the band scale are drawn with it. Evan's artwork replaces the placeholder drawings in Phase 4. |
+| Audio | **react-native-audio-api + react-native-audio-worklets** | A node graph like Web Audio, on the phone. Our own code makes every sample of the static and the Carrier on the audio thread, the same way the Swift app's source node did. Also where the analyzer's FFT will come from. |
+| Haptics | **Our own small native module** (`modules/asunder-haptics`) | Core Haptics on iPhone, the vibrator on Android: detent ticks, lock-on pulse, signal-lost flutter. |
+| Purchases | **Open** | StoreKit 2 was the Swift choice. With two stores it needs choosing again (Apple's and Google's in-app purchase systems, through a library). Not needed until there is something to sell. |
+| Files online | **Cloudflare R2** | Cheap object storage, no egress fees, account already connected. Audio and the manifest live here. |
+| Observation ledger | **Cloudflare Worker + KV** (Proposed) | A few lines of code that store one timestamp per transmission. Same account as R2. |
+| Source | **GitHub** | Version history and backup for the code. |
+| Build & ship | **Expo → Xcode / Android Studio → TestFlight and Play testing → App Store and Google Play** | Expo generates the native projects. Xcode still builds and signs the iPhone app; Android needs the Android SDK (not installed on Evan's Mac yet). Building in Expo's cloud (EAS) instead is Open. |
+
+What this costs: Apple Developer Program $99/year. Google Play has a one-time developer fee (check the current price when it's time). Cloudflare's free tier covers the Worker and KV at any audience size you'll see in year one. Your Mac needs a recent macOS for the current Xcode, and Node.js to run the tools.
+
+**Why the change.** One codebase reaches iPhone, Android and a browser, instead of an iPhone app now and a second, hand-written Android app later. Android is about half of US phones.
+
+**What it costs you.** The sound is now made in TypeScript on the audio thread, not in Swift. It is the same arithmetic (a test checks the TypeScript against numbers saved from the Swift code), but it runs much slower than compiled Swift. Real-time audio was the reason Swift won on Nov 5; that risk is now carried by two young libraries. The app also depends on a stack of third-party libraries that change often.
+
+**Audio CPU, measured Nov 19 (iPhone 17 simulator on Evan's Mac).** The CPU time used by the audio thread over 10 seconds, dial still, as a share of one Mac core:
+
+| What ran | Audio thread |
+| --- | --- |
+| Swift app's sound code, Release (offline render, a different method) | about 0.14% |
+| React Native, Release, before the Nov 19 speed-ups | about 30% |
+| React Native, Release, after the speed-ups | about 23–24% |
+| React Native, Debug, after the speed-ups | about 19–23% |
+| React Native, Release, worklets "bundle mode" (before the speed-ups) | about 12% |
+
+What it means:
+- It is roughly 150 times what the Swift code costs, but the methods differ: Swift was timed rendering offline, the RN app was measured live. On the simulator the audio thread keeps up (it is busy about a quarter of the time), but no one has listened for dropouts yet.
+- These are Mac cores. A phone core is slower, so on a real iPhone the share is probably higher. **Battery cost on a real phone has not been measured.** That, plus a long listen with the screen off, is the test that decides whether this is acceptable.
+- Why it is slow: on the phone the sound code runs in Hermes, React Native's JavaScript engine, which interprets it (no compiling to machine code while it runs). In the default ("plain") mode, the worklets library also ships the audio code as text and the phone compiles it at start-up with Hermes' optimizer switched off.
+- The Nov 19 speed-ups (fewer function calls per sample in `ReceiverChain.ts` and `Noise.ts`) leave the sound bit-for-bit identical; an old-versus-new comparison over 4.4 million samples checked it.
+- **Nov 20 speed-ups (not yet measured on the simulator or a phone).** Two more changes to the sound loop: (1) `chainRender` keeps all the filter, static and Carrier state in local variables, and skips the Carrier's sine waves when it is too quiet to matter (nearly the whole band); the sound is unchanged apart from the last bit of an odd sample. (2) The static's random numbers come from a 32-bit generator (xoshiro128**) instead of the Swift app's 64-bit one, which had to be done in two halves and was about half of the loop's time. The hiss is now a different (equally random) stream from the Swift app's; everything that shapes it still matches, and `SwiftParity.test.ts` still checks the whole chain against Swift by feeding it the Swift app's random numbers. Timed on a computer with its JavaScript compiler switched off (a stand-in for the phone's interpreter), the loop went from about 9.5% of a core to about 4.3%, roughly 2.3 times faster. **Re-measure on the simulator and a phone** before reading anything into it.
+- **Bundle mode is Open (Evan's call).** It compiles the audio code ahead of time with the optimizer, which made it about 2.5 times faster. Against it: it is a new feature of `react-native-worklets` 0.13 with no documentation in the package, it loads the whole app into the audio runtime, and it changes how Metro bundles the entire app. An earlier session reported a build warning calling it experimental and not for production; that text was not found in the library's source, so treat it as unconfirmed. The two config files that switch it on are not in the project.
+
+**The Swift app** (`Asunder/`, `AsunderCore/`) stays in the repo untouched, so the two can be run side by side and compared by ear and by feel. Whether and when it is retired is Open.
+
+**Kept for the record:** On Nov 5 Swift was chosen over Expo/React Native and Flutter, for real-time audio, with Android to follow as a Kotlin port. The reasoning then: AVAudioEngine lets the app *generate* static with a source node, run it through an EQ that thins it out as you drift off-center, and mix the result, all live. That requirement has not changed; the React Native app has to meet it.
 
 | Layer | Tool | What it is |
 | --- | --- | --- |
