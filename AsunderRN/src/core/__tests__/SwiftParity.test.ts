@@ -34,7 +34,7 @@ import {
   carrierIsOnAir,
   carrierPitch,
   carrierStrength,
-  chainRender,
+  chainRenderWith,
   chainRestartFade,
   clockDayIndex,
   clockDayOfWeek,
@@ -50,7 +50,6 @@ import {
   createFMBandDisplay,
   createLockDetector,
   createNoiseColor,
-  createNoiseRandom,
   createNoiseSource,
   createReceiverChain,
   createReceiverTargets,
@@ -72,12 +71,10 @@ import {
   lockUpdate,
   noiseColorBetween,
   noiseColorGains,
-  noiseNext,
+  noiseShape,
   noiseTemperatureAt,
   oscillatorNext,
   positiveModulo,
-  randomNext,
-  randomNextSigned,
   receptionBlendHz,
   receptionTargets,
   smoothedStep,
@@ -88,6 +85,12 @@ import {
   wrapUnit,
 } from '../index';
 import goldenJson from './fixtures/swift-golden.json';
+import {
+  createSwiftRandom,
+  swiftFillRandoms,
+  swiftRandomNext,
+  swiftRandomNextSigned,
+} from './SwiftRandom';
 
 // MARK: - How close is close enough?
 //
@@ -899,20 +902,25 @@ describe('lockDetector', () => {
 
 // MARK: - Noise
 
+// Since Nov 20 the app's static uses its own generator (Noise.ts), not the
+// Swift app's. These sections check the copy of the Swift generator kept in
+// SwiftRandom.ts, which the noiseSource and chain sections below then use to
+// feed the TypeScript code the same random numbers the Swift app used.
+
 describe('noiseRandom', () => {
-  it('makes the same random numbers, bit for bit', () => {
+  it('the kept Swift generator makes the same random numbers, bit for bit', () => {
     const tally = startTally('noiseRandom');
     for (const run of golden.noiseRandom) {
       // Two generators from the same seed, as in main.swift: one read raw,
       // one read as numbers between -1 and 1.
-      const raw = createNoiseRandom(run.seed);
-      const signed = createNoiseRandom(run.seed);
+      const raw = createSwiftRandom(run.seed);
+      const signed = createSwiftRandom(run.seed);
       for (let i = 0; i < run.next.length; i += 1) {
-        randomNext(raw);
+        swiftRandomNext(raw);
         checkSame(tally, `seed ${run.seed} next ${i}`, hex(raw.outHi, raw.outLo), run.next[i]);
       }
       for (let i = 0; i < run.nextSigned.length; i += 1) {
-        checkSame(tally, `seed ${run.seed} nextSigned ${i}`, randomNextSigned(signed), run.nextSigned[i]);
+        checkSame(tally, `seed ${run.seed} nextSigned ${i}`, swiftRandomNextSigned(signed), run.nextSigned[i]);
       }
     }
     finish(tally);
@@ -920,15 +928,20 @@ describe('noiseRandom', () => {
 });
 
 describe('noiseSource', () => {
-  it('makes the same white, pink and brown noise, exactly (arithmetic only)', () => {
+  it('makes the same white, pink and brown noise from the same random numbers, exactly (arithmetic only)', () => {
     const tally = startTally('noiseSource');
     for (const run of golden.noiseSource) {
       const source = createNoiseSource(run.seed);
+      const random = createSwiftRandom(run.seed); // the Swift app's numbers
       const white: number[] = [];
       const pink: number[] = [];
       const brown: number[] = [];
       for (let i = 0; i < run.white.length; i += 1) {
-        noiseNext(source);
+        // As noiseNext does, but with the Swift app's random numbers.
+        const w = swiftRandomNextSigned(random);
+        const p = swiftRandomNextSigned(random);
+        const b = swiftRandomNextSigned(random);
+        noiseShape(source, w, p, b);
         white.push(source.white);
         pink.push(source.pink);
         brown.push(source.brown);
@@ -1152,7 +1165,9 @@ describe('blendHz', () => {
 
 // MARK: - The whole chain
 // The finished sound, rendered the way the app does it: new targets each
-// buffer, then render that buffer. Every sample is compared.
+// buffer, then render that buffer. Every sample is compared. The static is
+// fed the Swift app's random numbers (see noiseRandom), so this checks
+// everything else in the chain against Swift, sample for sample.
 
 describe('chain', () => {
   const titles = [
@@ -1169,6 +1184,7 @@ describe('chain', () => {
       const tally = startTally('chain');
       const clock = createClock();
       const chain = createReceiverChain(run.sampleRate, run.seed);
+      const random = createSwiftRandom(run.seed); // the Swift app's numbers, see noiseRandom
       const targets = createReceiverTargets();
       const samples = new Float32Array(run.buffers * run.bufferSize);
       const buffer = new Float32Array(run.bufferSize);
@@ -1180,7 +1196,7 @@ describe('chain', () => {
         const dial = run.startDial + b * run.dialStepPerBuffer;
         const seconds = run.startSeconds + (b * run.bufferSize) / run.sampleRate;
         receptionTargets(targets, dial, seconds, clock);
-        chainRender(chain, buffer, run.bufferSize, targets);
+        chainRenderWith(chain, buffer, run.bufferSize, targets, random, swiftFillRandoms);
         samples.set(buffer, b * run.bufferSize);
       }
 
