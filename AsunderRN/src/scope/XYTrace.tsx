@@ -14,6 +14,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import { readVectorArt, ScopeTuning } from '../core';
 import type { ScopeXYLook, VectorBox } from '../core';
 import { bundledFileUri } from './ScopePictures';
+import type { ScopeFile } from './ScopePictures';
 
 // THE SCOPE'S XY MODE: vector art drawn the way an old lab oscilloscope
 // draws, with one glowing green beam. Used when the patched line carries
@@ -28,7 +29,7 @@ import { bundledFileUri } from './ScopePictures';
 // All the numbers are the xy... entries in ScopeTuning.
 
 /** Load an SVG file bundled with the app and read it. null until it's loaded. */
-export function useVectorArt(file: number | undefined): { box: VectorBox | null; shapes: string[] } | null {
+export function useVectorArt(file: ScopeFile | undefined): { box: VectorBox | null; shapes: string[] } | null {
   const [art, setArt] = useState<{ box: VectorBox | null; shapes: string[] } | null>(null);
   useEffect(() => {
     setArt(null);

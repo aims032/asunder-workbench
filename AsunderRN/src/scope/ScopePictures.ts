@@ -17,11 +17,18 @@ import { Image } from 'react-native';
 //
 // `require(...)` is how React Native bundles a file into the app.
 
+/**
+ * Where a picture's file is: a require() of a file bundled with the app, or
+ * an address (URL) of a file on the phone, like one from a downloaded
+ * transmission pack (store.fileUrl in src/media/PackSync.ts, PR #17).
+ */
+export type ScopeFile = number | string;
+
 /** One picture: a still, a moving one, or a line drawing. */
 export type ScopePicture =
-  | { kind: 'image'; file: number }
-  | { kind: 'video'; file: number }
-  | { kind: 'vector'; file: number };
+  | { kind: 'image'; file: ScopeFile }
+  | { kind: 'video'; file: ScopeFile }
+  | { kind: 'vector'; file: ScopeFile };
 
 /** The picture each phone line carries (key = the line's jack name). */
 export const LINE_PICTURES: Record<string, ScopePicture> = {
@@ -46,7 +53,7 @@ export const OVERRIDE_PICTURES: Record<string, number> = {
  * Where a bundled file lives, as an address the video player (or the SVG
  * reader) can open. (Pictures don't need this: useImage takes the require() directly.)
  */
-export function bundledFileUri(file: number): string | null {
+export function bundledFileUri(file: ScopeFile): string | null {
   // On the web a bundled file is already an address; on phones, ask React Native.
   const asAny = file as unknown;
   if (typeof asAny === 'string') {
@@ -55,5 +62,5 @@ export function bundledFileUri(file: number): string | null {
   if (asAny && typeof asAny === 'object' && 'uri' in asAny) {
     return String((asAny as { uri: string }).uri);
   }
-  return Image.resolveAssetSource(file)?.uri ?? null;
+  return typeof file === 'number' ? (Image.resolveAssetSource(file)?.uri ?? null) : null;
 }
