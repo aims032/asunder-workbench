@@ -75,9 +75,9 @@ describe('PrinterModelTests', () => {
 describe('SwitchboardModelTests', () => {
   test('a good change updates the board; a bad one is refused and changes nothing', () => {
     const switchboard = createSwitchboardModel();
-    expect(switchboard.apply({ kind: 'patch', from: 'out-1', to: 'in-1' })).toBeNull();
+    expect(switchboard.apply({ kind: 'patch', from: 'line-1', to: 'analyzer' })).toBeNull();
     const before = switchboard.board.get();
-    expect(switchboard.apply({ kind: 'patch', from: 'in-1', to: 'out-1' })).not.toBeNull();
+    expect(switchboard.apply({ kind: 'patch', from: 'analyzer', to: 'line-1' })).not.toBeNull();
     expect(switchboard.board.get()).toBe(before);
   });
 });

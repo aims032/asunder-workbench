@@ -2,6 +2,7 @@ import { initialPanel, panelSweepSettings } from './analyzer/AnalyzerControls';
 import { createAnalyzerModel } from './analyzer/AnalyzerModel';
 import type { AnalyzerModel } from './analyzer/AnalyzerModel';
 import { createReceiverAudio } from './audio/ReceiverAudio';
+import { ANALYZER_JACK } from './core';
 import type { ReceiverAudio } from './audio/ReceiverAudio.types';
 import { createDialModel, DIAL_START } from './dial/DialModel';
 import type { DialModel } from './dial/DialModel';
@@ -30,11 +31,20 @@ export interface Bench {
 
 export function createBench(): Bench {
   const audio = createReceiverAudio();
+  const analyzer = createAnalyzerModel(panelSweepSettings(initialPanel()), DIAL_START);
+  const switchboard = createSwitchboardModel();
+
+  // The cable between the two screens: whenever the switchboard changes, tell
+  // the analyzer which phone line (if any) is patched into its input jack.
+  switchboard.board.subscribe(() => {
+    analyzer.patchedLine.value = switchboard.board.get().cables[ANALYZER_JACK] ?? null;
+  });
+
   return {
     audio: audio,
     dial: createDialModel(audio),
-    analyzer: createAnalyzerModel(panelSweepSettings(initialPanel()), DIAL_START),
+    analyzer: analyzer,
     printer: createPrinterModel(createPrinterStorage()),
-    switchboard: createSwitchboardModel(),
+    switchboard: switchboard,
   };
 }

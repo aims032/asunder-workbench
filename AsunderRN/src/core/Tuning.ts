@@ -562,3 +562,63 @@ export const DeskTuning = {
    */
   cueGlowSeconds: 4,
 };
+
+// LINE TUNING: the analyzer's LINE input (a phone line patched into it).
+//
+// Kept apart from Tuning for the same reason as AnalyzerTuning (the Swift
+// app has none of this). Change these freely. The "stand-in voice" numbers
+// only matter until there are real recordings.
+export const LineTuning = {
+  // MARK: The screen
+
+  /**
+   * The lowest and highest frequency on the LINE screen, in Hz, left to
+   * right. A phone line carries roughly 300 to 3,400 Hz; this is wider so
+   * the low pitch of a voice and its upper detail both fit.
+   */
+  lowHz: 60,
+  highHz: 6_000,
+
+  /**
+   * How long one sweep across the LINE screen takes, in seconds. Shorter =
+   * the picture keeps up with speech; longer = you watch it paint.
+   */
+  sweepSeconds: 0.08,
+
+  /** The most sweeps worked out in one frame, so a long pause can't stall the screen. */
+  maxSweepsPerFrame: 2,
+
+  // MARK: The empty line
+
+  /** The level of an empty line's hiss, in dB. Higher = a noisier line. */
+  floorDb: -92,
+
+  /** How far the hiss flickers up and down, in dB. */
+  grassDb: 8,
+
+  /** How many times a second the hiss flickers. */
+  grassRate: 12,
+
+  /** How much quieter the screen is with nothing patched in, in dB. */
+  unpatchedDropDb: 12,
+
+  // MARK: The stand-in voices
+
+  /** The level of a stand-in voice's strongest harmonic, in dB. */
+  voicePeakDb: -48,
+
+  /** How many syllables a second a stand-in voice speaks. */
+  syllablesPerSecond: 3.5,
+
+  /** How far the pitch wanders between syllables (0.12 = 12% up or down). */
+  pitchWander: 0.12,
+
+  /** How wide each harmonic spike is, in Hz. Bigger = fatter spikes. */
+  harmonicWidthHz: 9,
+
+  /** How wide each formant bump is, as a fraction of its frequency. */
+  formantWidth: 0.16,
+
+  /** How fast a voice gets weaker going up, in dB per doubling of frequency. */
+  tiltDbPerOctave: 6,
+};

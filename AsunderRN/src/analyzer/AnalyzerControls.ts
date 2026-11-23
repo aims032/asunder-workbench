@@ -1,5 +1,6 @@
 import { AnalyzerTuning, analyzerAutoRbw, analyzerSweepSeconds, currentBandDisplay } from '../core';
 import type { AnalyzerSettings, TraceMode } from '../core';
+import type { AnalyzerInput } from './AnalyzerModel';
 
 // THE ANALYZER'S FRONT PANEL, AS NUMBERS: which settings it has, what one
 // step of the knob does to each, and how each reads on screen.
@@ -26,6 +27,8 @@ export interface PanelState {
   referenceDb: number;
   traceMode: TraceMode;
   view: AnalyzerView;
+  /** BAND (the radio band) or LINE (the phone line patched in on the switchboard). */
+  input: AnalyzerInput;
 }
 
 export function initialPanel(): PanelState {
@@ -37,6 +40,7 @@ export function initialPanel(): PanelState {
     referenceDb: AnalyzerTuning.startReferenceDb,
     traceMode: 'clearWrite',
     view: 'split',
+    input: 'band',
   };
 }
 
@@ -115,7 +119,17 @@ export function panelNextView(panel: PanelState): PanelState {
   return { ...panel, view: VIEWS[(i + 1) % VIEWS.length] };
 }
 
+/** Pressing INPUT: flips between the band and the patched phone line. */
+export function panelNextInput(panel: PanelState): PanelState {
+  return { ...panel, input: panel.input === 'band' ? 'line' : 'band' };
+}
+
 // MARK: How things read on screen
+
+export const INPUT_NAMES: Record<AnalyzerInput, string> = {
+  band: 'Band',
+  line: 'Line',
+};
 
 export const TRACE_MODE_NAMES: Record<TraceMode, string> = {
   clearWrite: 'Clear Write',

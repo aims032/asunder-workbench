@@ -9,8 +9,10 @@ import {
   bandWidthHz,
   hzLabel,
   initialPanel,
+  INPUT_NAMES,
   panelChanged,
   panelKnobStep,
+  panelNextInput,
   panelNextTraceMode,
   panelNextView,
   panelPress,
@@ -67,6 +69,7 @@ export function AnalyzerPanel({
   // Whenever the panel changes, hand the sweep its new settings.
   useEffect(() => {
     model.settings.value = panelSweepSettings(panel);
+    model.input.value = panel.input;
   }, [panel, model]);
 
   const press = useCallback((key: ActiveFunction) => {
@@ -86,6 +89,11 @@ export function AnalyzerPanel({
     setPanel(panelNextTraceMode);
     model.clearCount.value += 1; // a new trace mode starts a fresh trace
   }, [model]);
+
+  const nextInput = useCallback(() => {
+    hapticTick(0.4);
+    setPanel(panelNextInput);
+  }, []);
 
   const nextView = useCallback(() => {
     hapticTick(0.4);
@@ -117,6 +125,7 @@ export function AnalyzerPanel({
           />
           <PanelKey name="TRACE" value={TRACE_MODE_NAMES[panel.traceMode]} lit={false} onPress={nextTraceMode} />
           <PanelKey name="VIEW" value={VIEW_NAMES[panel.view]} lit={false} onPress={nextView} />
+          <PanelKey name="INPUT" value={INPUT_NAMES[panel.input]} lit={false} onPress={nextInput} />
         </View>
         <Knob size={KNOB_SIZE} onStep={knobStep} />
       </View>

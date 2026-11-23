@@ -23,35 +23,35 @@ describe('SwitchboardTests', () => {
   });
 
   test('patch plugs an output into an input', () => {
-    const board = boardOf(switchboardApply(emptySwitchboard(layout), layout, { kind: 'patch', from: 'out-1', to: 'in-2' }));
-    expect(board.cables['in-2']).toBe('out-1');
+    const board = boardOf(switchboardApply(emptySwitchboard(layout), layout, { kind: 'patch', from: 'line-1', to: 'scope' }));
+    expect(board.cables['scope']).toBe('line-1');
   });
 
   test('one output can feed many inputs', () => {
     let board = emptySwitchboard(layout);
-    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'out-1', to: 'in-1' }));
-    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'out-1', to: 'in-2' }));
+    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'line-1', to: 'analyzer' }));
+    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'line-1', to: 'scope' }));
     expect(switchboardCableCount(board)).toBe(2);
   });
 
   test('a new cable into a busy input replaces the old one', () => {
     let board = emptySwitchboard(layout);
-    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'out-1', to: 'in-1' }));
-    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'out-3', to: 'in-1' }));
-    expect(board.cables['in-1']).toBe('out-3');
+    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'line-1', to: 'analyzer' }));
+    board = boardOf(switchboardApply(board, layout, { kind: 'patch', from: 'line-3', to: 'analyzer' }));
+    expect(board.cables['analyzer']).toBe('line-3');
     expect(switchboardCableCount(board)).toBe(1);
   });
 
   test('unpatch pulls the cable out', () => {
-    let board = boardOf(switchboardApply(emptySwitchboard(layout), layout, { kind: 'patch', from: 'out-1', to: 'in-1' }));
-    board = boardOf(switchboardApply(board, layout, { kind: 'unpatch', to: 'in-1' }));
+    let board = boardOf(switchboardApply(emptySwitchboard(layout), layout, { kind: 'patch', from: 'line-1', to: 'analyzer' }));
+    board = boardOf(switchboardApply(board, layout, { kind: 'unpatch', to: 'analyzer' }));
     expect(switchboardCableCount(board)).toBe(0);
   });
 
   test('wrong-way or unknown jacks are refused', () => {
     const board = emptySwitchboard(layout);
-    expect(switchboardApply(board, layout, { kind: 'patch', from: 'in-1', to: 'in-2' }).ok).toBe(false);
-    expect(switchboardApply(board, layout, { kind: 'patch', from: 'out-1', to: 'out-2' }).ok).toBe(false);
+    expect(switchboardApply(board, layout, { kind: 'patch', from: 'analyzer', to: 'scope' }).ok).toBe(false);
+    expect(switchboardApply(board, layout, { kind: 'patch', from: 'line-1', to: 'line-2' }).ok).toBe(false);
     expect(switchboardApply(board, layout, { kind: 'unpatch', to: 'nowhere' }).ok).toBe(false);
     expect(switchboardApply(board, layout, { kind: 'set', control: 'nope', value: 1 }).ok).toBe(false);
   });
@@ -67,18 +67,18 @@ describe('SwitchboardTests', () => {
   });
 
   test('load replaces the whole board, and refuses one that does not fit', () => {
-    const saved: SwitchboardState = { cables: { 'in-4': 'out-2' }, controls: { 'knob-2': 0.1 } };
+    const saved: SwitchboardState = { cables: { 'ear': 'line-2' }, controls: { 'knob-2': 0.1 } };
     const board = boardOf(switchboardApply(emptySwitchboard(layout), layout, { kind: 'load', board: saved }));
-    expect(board.cables).toEqual({ 'in-4': 'out-2' });
+    expect(board.cables).toEqual({ 'ear': 'line-2' });
     expect(board.controls['knob-2']).toBe(0.1);
     expect(board.controls['knob-1']).toBe(0.5);
-    const bad: SwitchboardState = { cables: { 'in-99': 'out-1' }, controls: {} };
+    const bad: SwitchboardState = { cables: { 'nowhere': 'line-1' }, controls: {} };
     expect(switchboardApply(board, layout, { kind: 'load', board: bad }).ok).toBe(false);
   });
 
   test('a change never edits the old board', () => {
     const before = emptySwitchboard(layout);
-    switchboardApply(before, layout, { kind: 'patch', from: 'out-1', to: 'in-1' });
+    switchboardApply(before, layout, { kind: 'patch', from: 'line-1', to: 'analyzer' });
     expect(switchboardCableCount(before)).toBe(0);
   });
 });
