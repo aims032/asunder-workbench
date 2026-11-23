@@ -7,10 +7,12 @@ A radio receiver that belongs to the story's world, for iPhone and Android. See 
 
 *These changes are on the [`dev` branch](https://github.com/aims032/asunder-workbench/tree/dev), where new work lands; `main` is the last good version. Updated every evening by a scheduled task. The full history, in plain words, is in [CHANGELOG.md on dev](https://github.com/aims032/asunder-workbench/blob/dev/CHANGELOG.md).*
 
+- **Nov 23:** the printer types a transmission live, line by line; tap a line to jump back to it (#15).
+- **Nov 23:** the switchboard is a cord board you drag plugs on, with the printer beside it (#14).
+- **Nov 23:** the analyzer can listen to a phone line (#13), and print-outs fade each time the app closes (#12).
 - **Nov 23:** the desk, a second screen with the switchboard and the printer (#11).
 - **Nov 23:** the spectrum analyzer is in the main app (#10), plus fixes for the iPhone build and the missing vibration.
 - **Nov 23:** new `dev` branch for new work; `main` stays the last good version.
-- **Waiting to be merged:** print-outs that fade each time the app closes (#12), and an analyzer that can listen to a phone line (#13).
 <!-- whats-new:end -->
 
 **Two versions of the app live here.** On Nov 19, 2026 the app was ported from Swift to React Native, so one set of code covers iPhone, Android and a web preview. The Swift app is kept, untouched, so the two can be compared side by side.
