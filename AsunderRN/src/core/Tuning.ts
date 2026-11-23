@@ -786,6 +786,35 @@ export const ScopeTuning = {
   /** How fast the snow flickers, in new frames of snow a second. */
   snowRate: 30,
 
+  // MARK: The XY line drawing (vector art)
+
+  /** The beam's color, like the green phosphor of an old lab scope. */
+  xyColor: '#7dffb0',
+
+  /** How thick the beam's bright core is, in screen points. */
+  xyLineWidth: 1.6,
+
+  /** How wide the glow around the beam spreads, in screen points. Bigger = hazier. */
+  xyGlow: 6,
+
+  /** How far the beam wobbles off the line when barely tuned, as a fraction of the screen width. */
+  xyWobbleLost: 0.02,
+
+  /** How far it wobbles when tuned dead on. A tiny bit reads as "alive". */
+  xyWobbleClear: 0.0008,
+
+  /** How much of the grass (fuzz) is left when tuned dead on, 0 to 1. */
+  xyGrassClear: 0.05,
+
+  /** How long the bright spot takes to trace the whole drawing once, in seconds. */
+  xyTraceSeconds: 2.5,
+
+  /** How much of the drawing the bright spot covers at once, 0 to 1. */
+  xyTraceLength: 0.04,
+
+  /** How much empty space is left around the drawing, as a fraction of the screen. */
+  xyMargin: 0.1,
+
   // MARK: Asunder's override
 
   /**

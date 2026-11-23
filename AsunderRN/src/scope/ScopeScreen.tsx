@@ -2,6 +2,7 @@ import {
   Canvas,
   FilterMode,
   Fill,
+  Image,
   ImageShader,
   MipmapMode,
   Shader,
@@ -20,6 +21,7 @@ import {
   scopeClarity,
   scopeLook,
   scopeOverrideAt,
+  scopeXYLook,
   scopeRoll,
   ScopeTuning,
 } from '../core';
@@ -29,14 +31,17 @@ import { useStore } from '../desk/Store';
 import { MONOSPACED_FONT } from '../fonts';
 import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
 import { SCOPE_SHADER } from './ScopeShader';
+import { useVectorArt, XYTrace } from './XYTrace';
 
-// THE SCOPE'S SCREEN (CRT mode): the picture from whatever phone line is
-// patched into the SCOPE jack on the switchboard, drawn as an old TV tube.
-// How clear it is follows the dial: tune in and the snow clears, the roll
-// stops, the color comes back. All the look numbers are in ScopeTuning.
+// THE SCOPE'S SCREEN: the picture from whatever phone line is patched into
+// the SCOPE jack on the switchboard. Photos and clips are drawn as an old TV
+// tube (CRT mode); vector art as a glowing line drawing (XY mode, in
+// XYTrace.tsx). How clear it is follows the dial: tune in and the snow
+// clears, the roll stops, the color comes back. All the look numbers are in
+// ScopeTuning.
 //
 // Only the screen is built. The case and controls around it are Evan's
-// artwork (Phase 4). The XY line-drawing mode for vector art comes next.
+// artwork (Phase 4).
 //
 // TEST ONLY: press and hold the screen to preview Asunder's override for a
 // few seconds, using the placeholder picture. Real overrides come from
@@ -78,6 +83,8 @@ export function ScopeScreen({
     volume: 0,
   });
   const isClip = linePicture?.kind === 'video';
+  const isVector = linePicture?.kind === 'vector';
+  const art = useVectorArt(isVector ? linePicture.file : undefined);
   // The picture the tube draws this frame: the clip's latest frame, or the still.
   const picture = useDerivedValue(() => {
     const still = lineImage ?? overrideImage;
@@ -98,14 +105,24 @@ export function ScopeScreen({
     roll.value = scopeRoll(roll.value, look, dt);
   });
 
-  const uniforms = useDerivedValue(() => {
-    const T = ScopeTuning;
-    const look = scopeLook(scopeClarity(needle.value), patched.value);
+  // How fully Asunder has the screen right now: a scheduled override, or
+  // the press-and-hold preview. (Reading `time` makes this update every frame.)
+  const overrideAmount = useDerivedValue(() => {
+    time.value;
     const now = Date.now() / 1000;
     const scheduled = scopeOverrideAt(now, overrides);
     const preview = scopeOverrideAt(now, [
       { startsAt: previewStartsAt.value, seconds: PREVIEW_SECONDS, picture: OVERRIDE_PREVIEW_PICTURE },
     ]);
+    return Math.max(scheduled.amount, preview.amount);
+  });
+
+  // XY mode's look (vector art).
+  const xyLook = useDerivedValue(() => scopeXYLook(scopeClarity(needle.value), patched.value));
+
+  const uniforms = useDerivedValue(() => {
+    const T = ScopeTuning;
+    const look = scopeLook(scopeClarity(needle.value), patched.value);
     return {
       size: [Math.max(1, size.width), Math.max(1, size.height)],
       time: time.value,
@@ -121,7 +138,7 @@ export function ScopeScreen({
       vignette: T.vignette,
       glow: T.glow,
       snowRate: T.snowRate,
-      overrideAmount: Math.max(scheduled.amount, preview.amount),
+      overrideAmount: overrideAmount.value,
       overridePixels: T.overridePixels,
     };
   });
@@ -142,7 +159,23 @@ export function ScopeScreen({
         previewStartsAt.value = Date.now() / 1000;
       }}
     >
-      {shader && overrideImage && size.width > 0 ? (
+      {isVector && overrideImage && size.width > 0 ? (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <XYTrace art={art} width={size.width} height={size.height} look={xyLook} time={time} />
+          {/* Asunder's crisp pixels, over the line drawing. */}
+          <Image
+            image={overrideImage}
+            x={0}
+            y={0}
+            width={size.width}
+            height={size.height}
+            fit="cover"
+            opacity={overrideAmount}
+            sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
+          />
+        </Canvas>
+      ) : null}
+      {!isVector && shader && overrideImage && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <Fill>
             <Shader source={shader} uniforms={uniforms}>

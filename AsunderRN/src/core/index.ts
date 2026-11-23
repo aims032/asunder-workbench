@@ -32,3 +32,4 @@ export * from './Transmission';
 export * from './LineInput';
 export * from './LivePrint';
 export * from './Scope';
+export * from './VectorArt';

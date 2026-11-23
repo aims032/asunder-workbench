@@ -19,8 +19,10 @@ import { ScopeTuning } from './Tuning';
 // rolls and shakes. ScopeScreen.tsx turns those numbers into the picture.
 //
 // Three ways the screen can draw (Evan, Nov 23):
-//   1. CRT: a TV-style picture with scanlines, glow and snow. Built now.
-//   2. XY: a glowing line drawing, for vector art. Not built yet.
+//   1. CRT: a TV-style picture with scanlines, glow and snow, for photos and
+//      clips.
+//   2. XY: a glowing line drawing, for vector art (SVG files, see
+//      VectorArt.ts). A line carrying vector art switches the scope to XY.
 //   3. The override: Asunder takes the screen over and shows crisp, perfect
 //      pixels that an old tube shouldn't be able to show. When it happens and
 //      what she shows is Evan's story call; only the switch is built here.
@@ -35,7 +37,7 @@ import { ScopeTuning } from './Tuning';
 /** The switchboard jack that feeds the scope. */
 export const SCOPE_JACK = 'scope';
 
-/** The ways the scope can draw. Only 'crt' is built so far. */
+/** The ways the scope can draw (the override goes on top of either). */
 export type ScopeMode = 'crt' | 'xy';
 
 /**
@@ -98,6 +100,31 @@ export function scopeLook(clarity: number, patched: boolean): ScopeLook {
     rollSpeed: mix(T.rollLost, 0, c),
     color: mix(0, 1, clamp01((c - T.colorFrom) / (1 - T.colorFrom))),
     hold: c,
+  };
+}
+
+/** Everything the screen needs to draw one frame of the XY line drawing. */
+export interface ScopeXYLook {
+  /** How bright the beam is, 0 (dark) to 1 (full). */
+  brightness: number;
+  /** How far the beam wobbles off the line, as a fraction of the screen width. */
+  wobble: number;
+  /** How much the beam's grass (the fuzz on an empty scope) shows, 0 to 1. */
+  grass: number;
+}
+
+/**
+ * The XY drawing's look for a given clarity. Off the signal the line breaks
+ * up into wobble and grass; tuned in, it settles into a clean glowing line.
+ * With nothing patched in there's no drawing, only the grass.
+ */
+export function scopeXYLook(clarity: number, patched: boolean): ScopeXYLook {
+  const T = ScopeTuning;
+  const c = patched ? clamp01((clarity - T.pictureFrom) / (1 - T.pictureFrom)) : 0;
+  return {
+    brightness: c,
+    wobble: mix(T.xyWobbleLost, T.xyWobbleClear, c),
+    grass: mix(1, T.xyGrassClear, Math.sqrt(c)),
   };
 }
 

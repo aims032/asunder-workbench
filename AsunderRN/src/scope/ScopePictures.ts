@@ -8,23 +8,27 @@ import { Image } from 'react-native';
 // assets/scope/ and change its line below:
 //   - a photo (PNG or JPG):        { kind: 'image', file: require('...') }
 //   - a video clip (MP4 or MOV):   { kind: 'video', file: require('...') }
+//   - vector art (SVG):            { kind: 'vector', file: require('...') }
+//     Vector art is drawn in XY mode: one glowing green beam, like an old
+//     lab oscilloscope, instead of a TV picture.
 // Clips loop with their sound off. Phone clips and Apple Motion exports
 // (H.264 or HEVC) both work; ProRes is too big for a phone app, so export
 // Motion clips as H.264 or HEVC.
 //
 // `require(...)` is how React Native bundles a file into the app.
 
-/** One picture: a still or a moving one. */
+/** One picture: a still, a moving one, or a line drawing. */
 export type ScopePicture =
   | { kind: 'image'; file: number }
-  | { kind: 'video'; file: number };
+  | { kind: 'video'; file: number }
+  | { kind: 'vector'; file: number };
 
 /** The picture each phone line carries (key = the line's jack name). */
 export const LINE_PICTURES: Record<string, ScopePicture> = {
   'line-1': { kind: 'image', file: require('../../assets/scope/placeholder-line-1.png') },
   'line-2': { kind: 'video', file: require('../../assets/scope/placeholder-line-2.mp4') },
   'line-3': { kind: 'image', file: require('../../assets/scope/placeholder-line-3.png') },
-  'line-4': { kind: 'image', file: require('../../assets/scope/placeholder-line-4.png') },
+  'line-4': { kind: 'vector', file: require('../../assets/scope/placeholder-line-4.svg') },
   'line-5': { kind: 'image', file: require('../../assets/scope/placeholder-line-5.png') },
   'line-6': { kind: 'image', file: require('../../assets/scope/placeholder-line-6.png') },
 };
@@ -39,8 +43,8 @@ export const OVERRIDE_PICTURES: Record<string, number> = {
 };
 
 /**
- * Where a bundled file lives, as an address the video player can open.
- * (Pictures don't need this: useImage takes the require() directly.)
+ * Where a bundled file lives, as an address the video player (or the SVG
+ * reader) can open. (Pictures don't need this: useImage takes the require() directly.)
  */
 export function bundledFileUri(file: number): string | null {
   // On the web a bundled file is already an address; on phones, ask React Native.
