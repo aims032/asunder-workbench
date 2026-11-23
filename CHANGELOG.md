@@ -11,17 +11,14 @@ and commits both straight to `dev`. If nothing changed, it does nothing.
 *A few words that come up:* a **PR** (pull request) is a proposed change waiting to be accepted.
 **Merged** means it was accepted and is now part of the branch. Numbers like **#12** are PR numbers on GitHub.
 
-<!-- changelog:last-checked 7725885 2026-11-23T19:30:00Z -->
-
-## Waiting to be merged into dev
-
-These are finished but not accepted yet. They move into a dated entry below once merged.
-
-- **The paper fades every time the app closes** (#12). Each print-out gets a little fainter with every close, and after 33 closes it is gone, unless Bess prints a fresh copy when you find that transmission on the band again. Why: Evan's rule for the printer (Nov 23). It adds one small library for saving a file on the phone, so the phone app needs a rebuild after this lands.
-- **The analyzer can listen to a phone line** (#13, needs #12 first). A new INPUT key switches the analyzer between BAND (what it always showed) and LINE (the sound on whichever line is patched into it on the switchboard). Why: so voices can be seen as their own shapes on screen. The two voices are computed stand-ins until real recordings exist.
+<!-- changelog:last-checked dfc2f8b 2026-11-23T20:20:00Z -->
 
 ## 2026-11-23
 
+- **The live print-out** (#15). While a transmission plays, the printer types each line at the moment it is spoken, stamped with its time. A small mark shows the line being heard. Tap a printed line and the transmission jumps back to it, and the analyzer jumps with it. Why: Evan wants the paper to keep step with the voices. There is no sound yet and the words are placeholders; a test button on the desk plays a 16 second stand-in.
+- **A cord board you drag** (#14). The switchboard is now an operator's cord board. Three cords (analyzer, scope, ear) rest in a shelf at the bottom. Drag a plug up to a jack and it springs in; let go in open space and it springs back. Each phone line has two holes, so two instruments can share a line. The printer moved to sit beside the board. Why: Evan chose the 1940s cord board as the desk's final look. The shapes are still plain placeholders, and the feel has not been tried on a real phone yet.
+- **The analyzer can listen to a phone line** (#13). A new INPUT key switches the analyzer between BAND (what it always showed) and LINE (the sound on whichever line is patched into it on the switchboard). Why: so voices can be seen as their own shapes on screen. The two voices are computed stand-ins until real recordings exist.
+- **The paper fades every time the app closes** (#12). Each print-out gets a little fainter with every close, and after 33 closes it is gone, unless Bess prints a fresh copy when you find that transmission on the band again. Why: Evan's rule for the printer. It adds one small library for saving a file on the phone, so the phone app needs a rebuild.
 - **New `dev` branch.** From now on new work goes to `dev`, and `main` stays as the last good version until Evan says to bring `dev` over. Why: so experiments never break the version that works.
 - **The desk: a second screen** (#11). The switchboard sits on top and the printer's read-outs underneath, with a BENCH · DESK switch to flip between the bench and the desk. You can patch cables and mark print-outs as read. Everything on it is a placeholder look. Why: Evan decided the switchboard and the printer share a screen, since both are visual story pieces.
 - **The spectrum analyzer is in the main app** (#10). The second instrument on the bench, modeled on a real Keysight analyzer: a live trace and a scrolling history under it, with keys and a knob. Why: it is the next instrument in the build plan.
