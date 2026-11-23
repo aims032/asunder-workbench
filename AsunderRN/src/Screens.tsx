@@ -27,7 +27,7 @@ export function Screens({ bench }: { bench: Bench }) {
         <ContentView bench={bench} />
       </View>
       <View style={[styles.page, page !== 'desk' && styles.hidden, { paddingBottom: insets.bottom }]}>
-        <DeskScreen printer={bench.printer} switchboard={bench.switchboard} />
+        <DeskScreen printer={bench.printer} switchboard={bench.switchboard} player={bench.player} />
       </View>
     </View>
   );

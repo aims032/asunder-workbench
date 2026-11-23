@@ -2,6 +2,9 @@ import {
   DeskTuning,
   emptyPrinterLog,
   printerLogAdd,
+  printerLogAfterClose,
+  printerLogCloses,
+  printerLogInk,
   printerLogFromText,
   printerLogIsRead,
   printerLogMarkRead,
@@ -10,7 +13,7 @@ import {
   printerLogUnreadCount,
   printoutShouldCue,
 } from '../index';
-import type { Printout } from '../index';
+import type { PrinterLog, Printout } from '../index';
 
 // The printer's log (Printouts.ts). There's no Swift version of this, so
 // these tests are new rather than ported.
@@ -82,5 +85,69 @@ describe('PrintoutsTests', () => {
     expect(printerLogFromText(null)).toEqual(emptyPrinterLog());
     expect(printerLogFromText('not json')).toEqual(emptyPrinterLog());
     expect(printerLogFromText('{"version":999,"printouts":[],"readIds":[]}')).toEqual(emptyPrinterLog());
+  });
+
+  // The fading paper.
+
+  /** Close the app this many times. */
+  function closeTimes(log: PrinterLog, times: number): PrinterLog {
+    for (let i = 0; i < times; i++) {
+      log = printerLogAfterClose(log);
+    }
+    return log;
+  }
+
+  test('a fresh slip has full ink and no closes', () => {
+    const log = printerLogAdd(emptyPrinterLog(), slip('a', 1, 100)).log;
+    expect(printerLogCloses(log, 'a')).toBe(0);
+    expect(printerLogInk(log, 'a')).toBe(1);
+  });
+
+  test('each close fades every slip a little, never below the floor', () => {
+    let log = printerLogAdd(emptyPrinterLog(), slip('a', 1, 100)).log;
+    let before = printerLogInk(log, 'a');
+    for (let close = 1; close < DeskTuning.fadeCloses; close++) {
+      log = printerLogAfterClose(log);
+      const ink = printerLogInk(log, 'a');
+      expect(printerLogCloses(log, 'a')).toBe(close);
+      expect(ink).toBeLessThan(before);
+      expect(ink).toBeGreaterThanOrEqual(DeskTuning.fadeFloor - 1e-12);
+      before = ink;
+    }
+  });
+
+  test('a slip is still there one close before fadeCloses, and gone at it', () => {
+    const fresh = printerLogMarkRead(printerLogAdd(emptyPrinterLog(), slip('a', 1, 100)).log, 'a');
+    const almost = closeTimes(fresh, DeskTuning.fadeCloses - 1);
+    expect(almost.printouts).toHaveLength(1);
+    const gone = printerLogAfterClose(almost);
+    expect(gone).toEqual(emptyPrinterLog());
+  });
+
+  test('a reprint goes back to full ink, stays read, and is not new', () => {
+    let log = printerLogAdd(emptyPrinterLog(), slip('a', 1, 100)).log;
+    log = closeTimes(printerLogMarkRead(log, 'a'), 20);
+    const reprint = printerLogAdd(log, slip('a', 1, 100));
+    expect(reprint.isNew).toBe(false);
+    expect(reprint.log.printouts).toHaveLength(1);
+    expect(printerLogCloses(reprint.log, 'a')).toBe(0);
+    expect(printerLogInk(reprint.log, 'a')).toBe(1);
+    expect(printerLogIsRead(reprint.log, 'a')).toBe(true);
+    // And it lasts a full 33 closes again from here.
+    expect(closeTimes(reprint.log, DeskTuning.fadeCloses - 1).printouts).toHaveLength(1);
+  });
+
+  test('slips fade on their own counts', () => {
+    let log = printerLogAdd(emptyPrinterLog(), slip('old', 1, 100)).log;
+    log = closeTimes(log, 5);
+    log = printerLogAdd(log, slip('new', 2, 200)).log;
+    log = printerLogAfterClose(log);
+    expect(printerLogCloses(log, 'old')).toBe(6);
+    expect(printerLogCloses(log, 'new')).toBe(1);
+  });
+
+  test('the fade counts are saved too', () => {
+    const log = closeTimes(printerLogAdd(emptyPrinterLog(), slip('a', 1, 100)).log, 3);
+    expect(printerLogCloses(printerLogFromText(printerLogToText(log)), 'a')).toBe(3);
   });
 });

@@ -16,6 +16,8 @@
 // it has and what they're called, what patching does to the sound, and how
 // it looks. The jacks below are a plain placeholder layout so the logic can
 // be built and tested. Change SWITCHBOARD_LAYOUT freely.
+// Decided so far (Evan, Nov 23): the outputs are the mill's phone lines, and
+// patching one into the analyzer shows that line on the analyzer's LINE input.
 //
 // RULE: a helper function has to be written ABOVE the first place it is used
 // (see the DeclarationOrder test).
@@ -28,10 +30,20 @@ export interface SwitchboardLayout {
   controls: string[];
 }
 
-/** Placeholder: 6 outputs, 6 inputs, 2 knobs, named by number only. */
+/** The input jack that feeds the spectrum analyzer's LINE input. */
+export const ANALYZER_JACK = 'analyzer';
+
+/**
+ * Placeholder layout.
+ * Outputs are the mill's phone lines (Evan, Nov 23: a fixed network wired
+ * through the mill, so each line is a place). How many there are and where
+ * each one sits is Evan's to say; until then they're numbered.
+ * Inputs are the instruments a line can be patched into. Only the analyzer
+ * listens so far; the scope and the ear are there for what comes next.
+ */
 export const SWITCHBOARD_LAYOUT: SwitchboardLayout = {
-  outputs: ['out-1', 'out-2', 'out-3', 'out-4', 'out-5', 'out-6'],
-  inputs: ['in-1', 'in-2', 'in-3', 'in-4', 'in-5', 'in-6'],
+  outputs: ['line-1', 'line-2', 'line-3', 'line-4', 'line-5', 'line-6'],
+  inputs: [ANALYZER_JACK, 'scope', 'ear'],
   controls: ['knob-1', 'knob-2'],
 };
 

@@ -15,7 +15,7 @@ import { useDerivedValue, useFrameCallback, useSharedValue } from 'react-native-
 import type { FrameInfo, SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { AnalyzerTuning, currentBandDisplay } from '../core';
+import { AnalyzerTuning, currentBandDisplay, lineHzAt, LineTuning } from '../core';
 import type { AnalyzerTrace, BandPosition } from '../core';
 import { MONOSPACED_FONT } from '../fonts';
 import {
@@ -120,6 +120,8 @@ function makeSpectrogramImage(
 interface ScreenReadout {
   center: BandPosition;
   markerDb: number;
+  /** The phone line patched into the analyzer (only matters on LINE). */
+  line: string | null;
 }
 
 export function AnalyzerScreen({
@@ -132,7 +134,7 @@ export function AnalyzerScreen({
   panel: PanelState;
 }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const [readout, setReadout] = useState<ScreenReadout>({ center: needle.value, markerDb: -200 });
+  const [readout, setReadout] = useState<ScreenReadout>({ center: needle.value, markerDb: -200, line: null });
 
   // The panel's display settings, copied over to the screen thread.
   const referenceDb = useSharedValue(panel.referenceDb);
@@ -182,7 +184,11 @@ export function AnalyzerScreen({
       if (info.timestamp - lastReadoutTime.value > 1000 / AnalyzerTuning.markerReadoutRate) {
         lastReadoutTime.value = info.timestamp;
         const middle = (trace.points - 1) / 2;
-        scheduleOnRN(showReadout, { center: needle.value, markerDb: trace.values[middle] });
+        scheduleOnRN(showReadout, {
+          center: needle.value,
+          markerDb: trace.values[middle],
+          line: model.patchedLine.value,
+        });
       }
     },
     [model, needle, frameCount, showSpectro, spectroImage, referenceDb, lut, lastReadoutTime, showReadout],
@@ -253,7 +259,10 @@ export function AnalyzerScreen({
 
   const span = panelSpan(panel);
   const rbw = panelRbw(panel);
-  const centerHz = currentBandDisplay.frequencyAt(readout.center);
+  // On LINE the screen runs across the voice range instead of the band, so
+  // the words around the edge say that instead.
+  const onLine = panel.input === 'line';
+  const centerHz = onLine ? lineHzAt(0.5) : currentBandDisplay.frequencyAt(readout.center);
   const manualRbw = panel.rbwIndex !== null;
   const markerText =
     readout.markerDb > -199 ? `${readout.markerDb.toFixed(1)} dBm` : '---';
@@ -308,15 +317,23 @@ export function AnalyzerScreen({
       </View>
 
       <View style={styles.bottomRow}>
-        <Text style={styles.text}>Center {hzLabel(centerHz)}</Text>
-        <Text style={styles.text}>Span {spanLabel(readout.center, span)}</Text>
+        <Text style={styles.text}>
+          {onLine ? `Start ${hzLabel(LineTuning.lowHz)}` : `Center ${hzLabel(centerHz)}`}
+        </Text>
+        <Text style={styles.text}>
+          {onLine ? `Stop ${hzLabel(LineTuning.highHz)}` : `Span ${spanLabel(readout.center, span)}`}
+        </Text>
       </View>
       <View style={styles.bottomRow}>
         {/* A "#" means set by hand, not Auto: the Keysight's own convention. */}
         <Text style={styles.dim}>
-          {manualRbw ? '#' : ''}Res BW {hzLabel(bandWidthHz(readout.center, rbw))}
+          {onLine
+            ? `Input LINE · ${readout.line ?? 'nothing patched'}`
+            : `${manualRbw ? '#' : ''}Res BW ${hzLabel(bandWidthHz(readout.center, rbw))}`}
         </Text>
-        <Text style={styles.dim}>Sweep {secondsLabel(panelSweepSeconds(panel))}</Text>
+        <Text style={styles.dim}>
+          Sweep {secondsLabel(onLine ? LineTuning.sweepSeconds : panelSweepSeconds(panel))}
+        </Text>
       </View>
     </View>
   );

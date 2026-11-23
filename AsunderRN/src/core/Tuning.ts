@@ -510,11 +510,86 @@ export const DeskTuning = {
   // MARK: The screen
 
   /**
-   * How much of the desk screen the switchboard gets, from 0 to 1. The
-   * printer gets the rest. Bigger = more switchboard, less paper.
-   * (Placeholder split: the real layout is still being brainstormed.)
+   * How much of the desk's WIDTH the cord board gets, from 0 to 1. The
+   * printer sits beside it and gets the rest (Evan, Nov 23: the cord-board
+   * look, printer off to one side). Bigger = bigger jacks, a narrower strip
+   * of paper.
    */
-  switchboardShare: 0.6,
+  switchboardShare: 0.62,
+
+  /**
+   * Which side the printer sits on. true = right, false = left.
+   */
+  printerOnRight: true,
+
+  // MARK: The cord board
+
+  /**
+   * How many holes each phone line has on the board. 2 means two instruments
+   * can listen to the same line at once. More = a taller field of jacks.
+   */
+  jacksPerLine: 2,
+
+  /**
+   * How big a jack hole is drawn, as a share of the space between jacks
+   * (0 to 1). Bigger = fatter holes, closer together.
+   */
+  jackSize: 0.55,
+
+  /**
+   * Room kept for the small name labels above the jacks and under the
+   * cords, in points.
+   */
+  boardLabelSpace: 30,
+
+  /**
+   * How far the jacks sit above the shelf the cords rest in, in jack
+   * spacings. Smaller = a shorter reach from cord to jack and more room
+   * left above the board; bigger = longer cords.
+   */
+  shelfGap: 4,
+
+  /**
+   * How close a plug has to be to an empty jack before it will drop in,
+   * measured in jack spacings. Bigger = more forgiving, "magnetic"; smaller
+   * = you have to aim.
+   */
+  cordSnapReach: 0.75,
+
+  /**
+   * How close a touch has to be to a plug to pick it up, in jack spacings.
+   * Bigger = easier to grab, but neighbouring plugs get harder to tell apart.
+   */
+  cordGrabReach: 0.9,
+
+  /**
+   * How far above your fingertip the plug rides while you carry it, in
+   * points, so your finger doesn't hide the jack you're aiming at.
+   * 0 = right under the finger.
+   */
+  cordLift: 22,
+
+  /**
+   * How much slack a cord has, in jack spacings. Bigger = cords hang in deep
+   * loops; 0 = every cord is a straight line.
+   */
+  cordSlack: 1.6,
+
+  /**
+   * The spring that carries a plug the last little way into a jack, or back
+   * to the shelf when you let go. Stiffer = snappier. More damping = less
+   * bounce (around 12 it wobbles once; 30 and up it just slides home).
+   */
+  cordSpringStiffness: 260,
+  cordSpringDamping: 20,
+
+  /**
+   * How strong the three buzzes are, from 0 to 1 (0 = none): picking a plug
+   * up, passing over a jack it could drop into, and the plug going home.
+   */
+  cordGrabHaptic: 0.4,
+  cordHoverHaptic: 0.3,
+  cordPlugHaptic: 1,
 
   // MARK: The printer
 
@@ -523,6 +598,23 @@ export const DeskTuning = {
    * Bigger = a longer roll to scroll back through.
    */
   printerKeeps: 500,
+
+  // MARK: The fading paper
+
+  /**
+   * How many times the app can be closed before a print-out has faded off
+   * the paper and is gone (Evan, Nov 23: 33). A fresh copy from Bess starts
+   * the count over. Bigger = print-outs last longer.
+   */
+  fadeCloses: 33,
+
+  /**
+   * The faintest the ink gets before a slip disappears, from 0 (invisible)
+   * to 1 (never fades). It's a floor so that a nearly-gone slip can still be
+   * read by someone with low vision. Lower = ghostlier, harder to read.
+   * (Proposed by Claude; Evan to tune by eye.)
+   */
+  fadeFloor: 0.45,
 
   // MARK: The "new print-out" cue
 
@@ -544,4 +636,79 @@ export const DeskTuning = {
    * Longer = harder to miss, less subtle.
    */
   cueGlowSeconds: 4,
+
+  // MARK: The live print-out
+
+  /**
+   * How fast the printer types while a transmission plays, in characters a
+   * second. Bigger = each line rattles out faster; smaller = the words crawl
+   * out behind the voice. (Ordinary speech is about 15 characters a second.)
+   */
+  printCharsPerSecond: 30,
+
+  /**
+   * How many times a second the printer checks the tape while it's typing.
+   * Bigger = smoother typing, a little more work for the phone.
+   */
+  printChecksPerSecond: 20,
+};
+
+// LINE TUNING: the analyzer's LINE input (a phone line patched into it).
+//
+// Kept apart from Tuning for the same reason as AnalyzerTuning (the Swift
+// app has none of this). Change these freely. The "stand-in voice" numbers
+// only matter until there are real recordings.
+export const LineTuning = {
+  // MARK: The screen
+
+  /**
+   * The lowest and highest frequency on the LINE screen, in Hz, left to
+   * right. A phone line carries roughly 300 to 3,400 Hz; this is wider so
+   * the low pitch of a voice and its upper detail both fit.
+   */
+  lowHz: 60,
+  highHz: 6_000,
+
+  /**
+   * How long one sweep across the LINE screen takes, in seconds. Shorter =
+   * the picture keeps up with speech; longer = you watch it paint.
+   */
+  sweepSeconds: 0.08,
+
+  /** The most sweeps worked out in one frame, so a long pause can't stall the screen. */
+  maxSweepsPerFrame: 2,
+
+  // MARK: The empty line
+
+  /** The level of an empty line's hiss, in dB. Higher = a noisier line. */
+  floorDb: -92,
+
+  /** How far the hiss flickers up and down, in dB. */
+  grassDb: 8,
+
+  /** How many times a second the hiss flickers. */
+  grassRate: 12,
+
+  /** How much quieter the screen is with nothing patched in, in dB. */
+  unpatchedDropDb: 12,
+
+  // MARK: The stand-in voices
+
+  /** The level of a stand-in voice's strongest harmonic, in dB. */
+  voicePeakDb: -48,
+
+  /** How many syllables a second a stand-in voice speaks. */
+  syllablesPerSecond: 3.5,
+
+  /** How far the pitch wanders between syllables (0.12 = 12% up or down). */
+  pitchWander: 0.12,
+
+  /** How wide each harmonic spike is, in Hz. Bigger = fatter spikes. */
+  harmonicWidthHz: 9,
+
+  /** How wide each formant bump is, as a fraction of its frequency. */
+  formantWidth: 0.16,
+
+  /** How fast a voice gets weaker going up, in dB per doubling of frequency. */
+  tiltDbPerOctave: 6,
 };

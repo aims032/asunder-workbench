@@ -1,8 +1,9 @@
-import { DeskTuning } from '../../core';
+import { DeskTuning, printerLogCloses } from '../../core';
 import type { Printout } from '../../core';
 import { createPrinterModel } from '../PrinterModel';
-import type { PrinterStorage } from '../PrinterStorage';
+import type { PrinterStorage } from '../PrinterStorage.types';
 import { createSwitchboardModel } from '../SwitchboardModel';
+import { createTransmissionPlayer } from '../TransmissionPlayer';
 
 // The live printer's cue hook and saving, and the live switchboard.
 
@@ -41,7 +42,7 @@ describe('PrinterModelTests', () => {
     expect(cued).toEqual([]);
   });
 
-  test('the log is saved and comes back in a new printer', () => {
+  test('the roll is saved, and opening the app again fades it one step', () => {
     const storage = memoryStorage();
     const first = createPrinterModel(storage);
     first.receive(slip('a', 1));
@@ -49,15 +50,55 @@ describe('PrinterModelTests', () => {
     const second = createPrinterModel(storage);
     expect(second.log.get().printouts.map((p) => p.id)).toEqual(['a']);
     expect(second.log.get().readIds).toEqual(['a']);
+    expect(printerLogCloses(second.log.get(), 'a')).toBe(1);
+  });
+
+  test('a slip is gone after fadeCloses closes, unless it is reprinted', () => {
+    const storage = memoryStorage();
+    createPrinterModel(storage).receive(slip('fades', 1));
+    createPrinterModel(storage).receive(slip('kept', 1));
+    // Close and reopen the app until 'fades' has seen all its closes.
+    for (let close = 1; close < DeskTuning.fadeCloses; close++) {
+      const printer = createPrinterModel(storage);
+      printer.receive(slip('kept', 1)); // Bess prints a fresh copy each time
+    }
+    const last = createPrinterModel(storage);
+    expect(last.log.get().printouts.map((p) => p.id)).toEqual(['kept']);
+  });
+
+  test('a brand new printer with nothing saved does not count a close', () => {
+    const printer = createPrinterModel(memoryStorage());
+    printer.receive(slip('a', 1));
+    expect(printerLogCloses(printer.log.get(), 'a')).toBe(0);
   });
 });
 
 describe('SwitchboardModelTests', () => {
   test('a good change updates the board; a bad one is refused and changes nothing', () => {
     const switchboard = createSwitchboardModel();
-    expect(switchboard.apply({ kind: 'patch', from: 'out-1', to: 'in-1' })).toBeNull();
+    expect(switchboard.apply({ kind: 'patch', from: 'line-1', to: 'analyzer' })).toBeNull();
     const before = switchboard.board.get();
-    expect(switchboard.apply({ kind: 'patch', from: 'in-1', to: 'out-1' })).not.toBeNull();
+    expect(switchboard.apply({ kind: 'patch', from: 'analyzer', to: 'line-1' })).not.toBeNull();
     expect(switchboard.board.get()).toBe(before);
+  });
+});
+
+describe('TransmissionPlayerTests', () => {
+  test('nothing plays until it is started', () => {
+    const player = createTransmissionPlayer();
+    expect(player.tape.get()).toBeNull();
+    expect(player.seconds(500)).toBe(0);
+    player.jump(3, 500); // ignored
+    expect(player.tape.get()).toBeNull();
+  });
+
+  test('start, play on, jump back: the paper keeps what it printed', () => {
+    const player = createTransmissionPlayer();
+    player.start(1000);
+    player.advance(1009);
+    player.jump(4.5, 1009);
+    expect(player.seconds(1009)).toBe(4.5);
+    expect(player.tape.get()?.printedThroughSeconds).toBe(9);
+    expect(player.tape.get()?.startedAtSeconds).toBe(1004.5);
   });
 });
