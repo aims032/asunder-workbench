@@ -1,11 +1,12 @@
 # CI: checks that the code compiles and the tests pass on every push.
 #
-# Three jobs:
+# Four jobs:
 #  - core-tests (Linux, cheap): runs AsunderCore's unit tests. This covers the
 #    clock and wrap math every phone has to agree on.
 #  - rn-tests (Linux, cheap): the React Native app in AsunderRN. Checks the
 #    TypeScript types, then runs its tests, which include comparing the ported
 #    core against numbers saved from the Swift core (swift-golden.json).
+#  - media-tests (Linux, cheap): the media server in media/ (Worker + pack tools).
 #  - ios-build (macOS, costs ~10x more minutes): builds the actual iPhone app
 #    for the simulator. It runs on pull requests and on demand, not on every push.
 
@@ -44,6 +45,26 @@ jobs:
         run: npx tsc --noEmit
       - name: Run tests
         run: npx jest
+
+  media-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: media
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: media/package-lock.json
+      - name: Install packages
+        run: npm ci
+      - name: Check types
+        run: npx tsc --noEmit
+      # Checks the media server only hands out packs that have unlocked.
+      - name: Run tests
+        run: npm test
 
   ios-build:
     if: github.event_name != 'push'

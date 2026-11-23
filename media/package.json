@@ -1,0 +1,19 @@
+{
+  "name": "asunder-media-server",
+  "private": true,
+  "type": "module",
+  "description": "The small server that hands transmission packs to phones once they unlock. Runs on Cloudflare (Worker + R2), or on your own computer for testing.",
+  "scripts": {
+    "local": "node --experimental-strip-types dev/serve-local.ts",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "pack": "node --experimental-strip-types tools/make-pack.ts",
+    "upload": "node --experimental-strip-types tools/upload-pack.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "~6.0.3",
+    "wrangler": "^4.167.0"
+  }
+}

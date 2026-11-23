@@ -13,6 +13,8 @@ import { createSwitchboardModel } from "./desk/SwitchboardModel";
 import { createTransmissionPlayer } from "./desk/TransmissionPlayer";
 import type { TransmissionPlayer } from "./desk/TransmissionPlayer";
 import type { SwitchboardModel } from "./desk/SwitchboardModel";
+import { createMediaLibrary } from "./media/MediaLibrary";
+import type { MediaLibrary } from "./media/MediaLibrary";
 
 /**
  * Everything on the bench, made once when the app opens and kept for as long
@@ -31,6 +33,8 @@ export interface Bench {
   switchboard: SwitchboardModel;
   /** The tape of the transmission on the lines (a stand-in until there's a real one). */
   player: TransmissionPlayer;
+  /** The transmissions downloaded to this device (see src/media). */
+  media: MediaLibrary;
 }
 
 export function createBench(): Bench {
@@ -65,5 +69,6 @@ export function createBench(): Bench {
     printer: createPrinterModel(createPrinterStorage()),
     switchboard: switchboard,
     player: player,
+    media: createMediaLibrary(),
   };
 }

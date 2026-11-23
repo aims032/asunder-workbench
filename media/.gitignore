@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+# Your recordings and the packs made from them: too big for git, and the
+# masters are yours. Keep them backed up somewhere else.
+masters/
+bucket/

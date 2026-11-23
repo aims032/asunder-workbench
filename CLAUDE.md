@@ -27,7 +27,7 @@ Status tags in `/docs`: **Confirmed** means Evan decided it. **Proposed** is a r
 - The TypeScript core (`AsunderRN/src/core`) is a file-for-file port of `AsunderCore`. A test (`SwiftParity.test.ts`) checks it against numbers saved from the real Swift code.
 - The feel numbers for the React Native app are in `AsunderRN/src/core/Tuning.ts` (the port of `Tuning.swift`). Where this file says `Tuning.swift`, read `Tuning.ts` for React Native work.
 - These libraries change fast and are newer than what you remember. Check the version in `AsunderRN/package.json` and read the types in `node_modules` or the current docs before using an API.
-- GitHub for source. No server until the first transmission (Phase 8).
+- GitHub for source. ~~No server until the first transmission (Phase 8).~~ Decided Nov 23 (Evan): transmission media lives on Cloudflare (R2 bucket + a small Worker that only hands out unlocked packs), downloaded by the phone when each transmission unlocks and kept for offline play. The app ships small, with only the first transmission inside. Code and setup steps: `media/README.md`; app side: `AsunderRN/src/media`.
 
 ## Look (Confirmed Nov 7, restated Nov 12)
 

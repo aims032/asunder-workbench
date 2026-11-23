@@ -1,0 +1,15 @@
+# Cloudflare's settings for the media server. Read by the `wrangler` tool.
+#
+# name           what the Worker is called; its address becomes
+#                https://asunder-media.<your-account>.workers.dev
+# main           the file Cloudflare runs
+# r2_buckets     connects the R2 bucket to the code as `env.MEDIA`.
+#                bucket_name must match the bucket you make in the dashboard.
+
+name = "asunder-media"
+main = "src/worker.ts"
+compatibility_date = "2026-11-01"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "asunder-media"
