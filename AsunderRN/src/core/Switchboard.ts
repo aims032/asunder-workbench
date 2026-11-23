@@ -23,6 +23,8 @@
 // (see the DeclarationOrder test).
 'worklet';
 
+import { SCOPE_JACK } from './Scope';
+
 /** The jacks and knobs a board has. Names are placeholders. */
 export interface SwitchboardLayout {
   outputs: string[];
@@ -43,7 +45,7 @@ export const ANALYZER_JACK = 'analyzer';
  */
 export const SWITCHBOARD_LAYOUT: SwitchboardLayout = {
   outputs: ['line-1', 'line-2', 'line-3', 'line-4', 'line-5', 'line-6'],
-  inputs: [ANALYZER_JACK, 'scope', 'ear'],
+  inputs: [ANALYZER_JACK, SCOPE_JACK, 'ear'],
   controls: ['knob-1', 'knob-2'],
 };
 
