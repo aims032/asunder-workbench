@@ -636,6 +636,21 @@ export const DeskTuning = {
    * Longer = harder to miss, less subtle.
    */
   cueGlowSeconds: 4,
+
+  // MARK: The live print-out
+
+  /**
+   * How fast the printer types while a transmission plays, in characters a
+   * second. Bigger = each line rattles out faster; smaller = the words crawl
+   * out behind the voice. (Ordinary speech is about 15 characters a second.)
+   */
+  printCharsPerSecond: 30,
+
+  /**
+   * How many times a second the printer checks the tape while it's typing.
+   * Bigger = smoother typing, a little more work for the phone.
+   */
+  printChecksPerSecond: 20,
 };
 
 // LINE TUNING: the analyzer's LINE input (a phone line patched into it).

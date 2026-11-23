@@ -51,6 +51,11 @@ export interface AnalyzerModel {
    * nothing is. Written whenever the switchboard changes (see Bench.ts).
    */
   patchedLine: SharedValue<string | null>;
+  /**
+   * The clock time (Unix seconds) the line's transmission was at its start.
+   * 0 until a tape is started (the desk's TransmissionPlayer sets it).
+   */
+  lineStartedAt: SharedValue<number>;
 
   // What the drawings read:
   /** Goes up by 1 every frame the trace changes, so the drawing knows to redraw. */
@@ -75,6 +80,7 @@ export function createAnalyzerModel(settings: AnalyzerSettings, start: BandPosit
     clearCount: makeMutable(0),
     input: makeMutable<AnalyzerInput>('band'),
     patchedLine: makeMutable<string | null>(null),
+    lineStartedAt: makeMutable(0),
     frame: makeMutable(0),
     nudge: makeMutable(0),
   };
@@ -110,7 +116,9 @@ export function analyzerModelFrame(model: AnalyzerModel, needle: BandPosition, d
       analyzerClear(trace);
     }
     model.nudge.value = 0;
-    lineAdvance(trace, dt, settings.traceMode, now, STAND_IN_TRANSMISSION, line);
+    // The line's own time: counted from when its tape started, so a jump on
+    // the printer's paper moves what the analyzer shows too.
+    lineAdvance(trace, dt, settings.traceMode, now - model.lineStartedAt.value, STAND_IN_TRANSMISSION, line);
     model.frame.value += 1;
     return;
   }

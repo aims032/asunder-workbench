@@ -3,6 +3,7 @@ import type { Printout } from '../../core';
 import { createPrinterModel } from '../PrinterModel';
 import type { PrinterStorage } from '../PrinterStorage.types';
 import { createSwitchboardModel } from '../SwitchboardModel';
+import { createTransmissionPlayer } from '../TransmissionPlayer';
 
 // The live printer's cue hook and saving, and the live switchboard.
 
@@ -79,5 +80,25 @@ describe('SwitchboardModelTests', () => {
     const before = switchboard.board.get();
     expect(switchboard.apply({ kind: 'patch', from: 'analyzer', to: 'line-1' })).not.toBeNull();
     expect(switchboard.board.get()).toBe(before);
+  });
+});
+
+describe('TransmissionPlayerTests', () => {
+  test('nothing plays until it is started', () => {
+    const player = createTransmissionPlayer();
+    expect(player.tape.get()).toBeNull();
+    expect(player.seconds(500)).toBe(0);
+    player.jump(3, 500); // ignored
+    expect(player.tape.get()).toBeNull();
+  });
+
+  test('start, play on, jump back: the paper keeps what it printed', () => {
+    const player = createTransmissionPlayer();
+    player.start(1000);
+    player.advance(1009);
+    player.jump(4.5, 1009);
+    expect(player.seconds(1009)).toBe(4.5);
+    expect(player.tape.get()?.printedThroughSeconds).toBe(9);
+    expect(player.tape.get()?.startedAtSeconds).toBe(1004.5);
   });
 });

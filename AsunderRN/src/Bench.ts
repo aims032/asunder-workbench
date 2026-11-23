@@ -1,16 +1,18 @@
-import { initialPanel, panelSweepSettings } from './analyzer/AnalyzerControls';
-import { createAnalyzerModel } from './analyzer/AnalyzerModel';
-import type { AnalyzerModel } from './analyzer/AnalyzerModel';
-import { createReceiverAudio } from './audio/ReceiverAudio';
-import { ANALYZER_JACK } from './core';
-import type { ReceiverAudio } from './audio/ReceiverAudio.types';
-import { createDialModel, DIAL_START } from './dial/DialModel';
-import type { DialModel } from './dial/DialModel';
-import { createPrinterModel } from './desk/PrinterModel';
-import type { PrinterModel } from './desk/PrinterModel';
-import { createPrinterStorage } from './desk/PrinterStorage';
-import { createSwitchboardModel } from './desk/SwitchboardModel';
-import type { SwitchboardModel } from './desk/SwitchboardModel';
+import { initialPanel, panelSweepSettings } from "./analyzer/AnalyzerControls";
+import { createAnalyzerModel } from "./analyzer/AnalyzerModel";
+import type { AnalyzerModel } from "./analyzer/AnalyzerModel";
+import { createReceiverAudio } from "./audio/ReceiverAudio";
+import { ANALYZER_JACK } from "./core";
+import type { ReceiverAudio } from "./audio/ReceiverAudio.types";
+import { createDialModel, DIAL_START } from "./dial/DialModel";
+import type { DialModel } from "./dial/DialModel";
+import { createPrinterModel } from "./desk/PrinterModel";
+import type { PrinterModel } from "./desk/PrinterModel";
+import { createPrinterStorage } from "./desk/PrinterStorage";
+import { createSwitchboardModel } from "./desk/SwitchboardModel";
+import { createTransmissionPlayer } from "./desk/TransmissionPlayer";
+import type { TransmissionPlayer } from "./desk/TransmissionPlayer";
+import type { SwitchboardModel } from "./desk/SwitchboardModel";
 
 /**
  * Everything on the bench, made once when the app opens and kept for as long
@@ -27,17 +29,33 @@ export interface Bench {
   analyzer: AnalyzerModel;
   printer: PrinterModel;
   switchboard: SwitchboardModel;
+  /** The tape of the transmission on the lines (a stand-in until there's a real one). */
+  player: TransmissionPlayer;
 }
 
 export function createBench(): Bench {
   const audio = createReceiverAudio();
-  const analyzer = createAnalyzerModel(panelSweepSettings(initialPanel()), DIAL_START);
+  const analyzer = createAnalyzerModel(
+    panelSweepSettings(initialPanel()),
+    DIAL_START,
+  );
   const switchboard = createSwitchboardModel();
 
   // The cable between the two screens: whenever the switchboard changes, tell
   // the analyzer which phone line (if any) is patched into its input jack.
   switchboard.board.subscribe(() => {
-    analyzer.patchedLine.value = switchboard.board.get().cables[ANALYZER_JACK] ?? null;
+    analyzer.patchedLine.value =
+      switchboard.board.get().cables[ANALYZER_JACK] ?? null;
+  });
+
+  // And the tape: when it starts or jumps, the analyzer's LINE input follows,
+  // so the paper and the analyzer always agree about "now".
+  const player = createTransmissionPlayer();
+  player.tape.subscribe(() => {
+    const startedAt = player.tape.get()?.startedAtSeconds ?? 0;
+    if (analyzer.lineStartedAt.value !== startedAt) {
+      analyzer.lineStartedAt.value = startedAt;
+    }
   });
 
   return {
@@ -46,5 +64,6 @@ export function createBench(): Bench {
     analyzer: analyzer,
     printer: createPrinterModel(createPrinterStorage()),
     switchboard: switchboard,
+    player: player,
   };
 }
