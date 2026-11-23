@@ -1,12 +1,13 @@
 import {
   printerLogAdd,
+  printerLogAfterClose,
   printerLogFromText,
   printerLogMarkRead,
   printerLogToText,
   printoutShouldCue,
 } from '../core';
 import type { PrinterLog, Printout } from '../core';
-import type { PrinterStorage } from './PrinterStorage';
+import type { PrinterStorage } from './PrinterStorage.types';
 import { createStore } from './Store';
 import type { Store } from './Store';
 
@@ -21,7 +22,10 @@ export type PrintoutCueListener = (printout: Printout) => void;
 
 export interface PrinterModel {
   log: Store<PrinterLog>;
-  /** A print-out arrived. Adds it, saves, and fires the cue if it's due one. */
+  /**
+   * A print-out arrived. Adds it, saves, and fires the cue if it's due one.
+   * Sending one that's already on the roll is a reprint: it goes back to full ink.
+   */
   receive(printout: Printout): void;
   markRead(id: string): void;
   /**
@@ -33,8 +37,14 @@ export interface PrinterModel {
 }
 
 export function createPrinterModel(storage: PrinterStorage): PrinterModel {
-  const log = createStore(printerLogFromText(storage.load()));
+  // An app can't reliably notice the moment it is closed, so the close is
+  // counted on the way back in: if there's a saved roll, the app was closed
+  // once since it was saved, and every slip fades one step (or is gone).
+  const saved = storage.load();
+  const startingLog = saved === null ? printerLogFromText(null) : printerLogAfterClose(printerLogFromText(saved));
+  const log = createStore(startingLog);
   const cueListeners = new Set<PrintoutCueListener>();
+  storage.save(printerLogToText(startingLog));
 
   // Every change to the log is saved straight away.
   log.subscribe(() => storage.save(printerLogToText(log.get())));

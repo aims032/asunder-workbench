@@ -8,6 +8,12 @@
 // screen only or a real printer someday, whether it prints only during
 // transmissions, what happens after printing, and what tapping a line does.
 //
+// THE PAPER FADES (Evan, Nov 23). Every time the app is closed, every slip
+// on the roll fades a little. After DeskTuning.fadeCloses closes (33) a slip
+// has faded off the paper and is gone, unless Bess prints a fresh copy first
+// (the listener finding that transmission on the band again), which starts
+// it over at full ink.
+//
 // Every function here returns a NEW log and leaves the old one alone
 // ("immutable"). That makes it easy to save, compare and test.
 //
@@ -45,11 +51,16 @@ export interface PrinterLog {
   printouts: Printout[];
   /** Ids of the print-outs the listener has opened. */
   readIds: string[];
+  /**
+   * How many times the app has been closed since each print-out was last
+   * printed: id -> count. A slip that isn't listed hasn't faded at all.
+   */
+  closesById: Record<string, number>;
 }
 
 /** A printer that hasn't printed anything yet. */
 export function emptyPrinterLog(): PrinterLog {
-  return { printouts: [], readIds: [] };
+  return { printouts: [], readIds: [], closesById: {} };
 }
 
 /** Is a print-out with this id already in the log? */
@@ -57,24 +68,74 @@ export function printerLogHas(log: PrinterLog, id: string): boolean {
   return log.printouts.some((p) => p.id === id);
 }
 
+/** A copy of the fade counts with only the listed ids kept. */
+function closesFor(closesById: Record<string, number>, keptIds: string[]): Record<string, number> {
+  const kept: Record<string, number> = {};
+  for (const id of keptIds) {
+    if (closesById[id] !== undefined) {
+      kept[id] = closesById[id];
+    }
+  }
+  return kept;
+}
+
 /**
- * Add a print-out that just arrived. If one with the same id is already
- * there, nothing changes and `isNew` is false (so a print-out delivered twice,
- * say after the app restarts, doesn't cue twice).
+ * Add a print-out that just arrived.
+ *
+ * If one with the same id is already on the roll, this is a REPRINT: the
+ * slip goes back to full ink (its fade count is cleared) and `isNew` is false,
+ * so a reprint doesn't play the cue again. It stays marked read if it was.
+ *
  * The log stays in arrival order; if it grows past DeskTuning.printerKeeps,
  * the oldest slips fall off the end of the roll.
  */
 export function printerLogAdd(log: PrinterLog, printout: Printout): { log: PrinterLog; isNew: boolean } {
   if (printerLogHas(log, printout.id)) {
-    return { log: log, isNew: false };
+    const closesById = { ...log.closesById };
+    delete closesById[printout.id];
+    return { log: { printouts: log.printouts, readIds: log.readIds, closesById: closesById }, isNew: false };
   }
   const all = [...log.printouts, printout].sort((a, b) => a.arrivedAtSeconds - b.arrivedAtSeconds);
   const kept = all.slice(Math.max(0, all.length - DeskTuning.printerKeeps));
   const keptIds = kept.map((p) => p.id);
   return {
-    log: { printouts: kept, readIds: log.readIds.filter((id) => keptIds.includes(id)) },
+    log: {
+      printouts: kept,
+      readIds: log.readIds.filter((id) => keptIds.includes(id)),
+      closesById: closesFor(log.closesById, keptIds),
+    },
     isNew: true,
   };
+}
+
+/** How many times the app has closed since this slip was last printed. */
+export function printerLogCloses(log: PrinterLog, id: string): number {
+  return log.closesById[id] ?? 0;
+}
+
+/**
+ * The app was closed once: every slip fades one step, and any slip that has
+ * now seen DeskTuning.fadeCloses closes is gone from the roll.
+ */
+export function printerLogAfterClose(log: PrinterLog): PrinterLog {
+  const kept = log.printouts.filter((p) => printerLogCloses(log, p.id) + 1 < DeskTuning.fadeCloses);
+  const keptIds = kept.map((p) => p.id);
+  const closesById: Record<string, number> = {};
+  for (const id of keptIds) {
+    closesById[id] = printerLogCloses(log, id) + 1;
+  }
+  return { printouts: kept, readIds: log.readIds.filter((id) => keptIds.includes(id)), closesById: closesById };
+}
+
+/**
+ * How dark a slip's ink is right now: 1 = freshly printed, sliding down
+ * evenly with each close toward DeskTuning.fadeFloor on its last close before
+ * it disappears. The floor is there so a faded slip can still be read.
+ */
+export function printerLogInk(log: PrinterLog, id: string): number {
+  const lastStep = Math.max(1, DeskTuning.fadeCloses - 1);
+  const faded = Math.min(1, printerLogCloses(log, id) / lastStep);
+  return 1 - (1 - DeskTuning.fadeFloor) * faded;
 }
 
 /** Mark one print-out as read. */
@@ -82,7 +143,7 @@ export function printerLogMarkRead(log: PrinterLog, id: string): PrinterLog {
   if (!printerLogHas(log, id) || log.readIds.includes(id)) {
     return log;
   }
-  return { printouts: log.printouts, readIds: [...log.readIds, id] };
+  return { printouts: log.printouts, readIds: [...log.readIds, id], closesById: log.closesById };
 }
 
 /** Has the listener opened this one? */
@@ -111,11 +172,16 @@ export function printoutShouldCue(printout: Printout): boolean {
 }
 
 /** The version number written into saved logs, so old saves can be upgraded later. */
-export const PRINTER_LOG_SAVE_VERSION = 1;
+export const PRINTER_LOG_SAVE_VERSION = 2;
 
 /** The log as text, ready to save on the phone. */
 export function printerLogToText(log: PrinterLog): string {
-  return JSON.stringify({ version: PRINTER_LOG_SAVE_VERSION, printouts: log.printouts, readIds: log.readIds });
+  return JSON.stringify({
+    version: PRINTER_LOG_SAVE_VERSION,
+    printouts: log.printouts,
+    readIds: log.readIds,
+    closesById: log.closesById,
+  });
 }
 
 /**
@@ -128,10 +194,16 @@ export function printerLogFromText(text: string | null): PrinterLog {
   }
   try {
     const saved = JSON.parse(text);
-    if (saved.version !== PRINTER_LOG_SAVE_VERSION || !Array.isArray(saved.printouts) || !Array.isArray(saved.readIds)) {
+    if (
+      saved.version !== PRINTER_LOG_SAVE_VERSION ||
+      !Array.isArray(saved.printouts) ||
+      !Array.isArray(saved.readIds) ||
+      typeof saved.closesById !== 'object' ||
+      saved.closesById === null
+    ) {
       return emptyPrinterLog();
     }
-    return { printouts: saved.printouts, readIds: saved.readIds };
+    return { printouts: saved.printouts, readIds: saved.readIds, closesById: saved.closesById };
   } catch {
     return emptyPrinterLog();
   }

@@ -524,6 +524,23 @@ export const DeskTuning = {
    */
   printerKeeps: 500,
 
+  // MARK: The fading paper
+
+  /**
+   * How many times the app can be closed before a print-out has faded off
+   * the paper and is gone (Evan, Nov 23: 33). A fresh copy from Bess starts
+   * the count over. Bigger = print-outs last longer.
+   */
+  fadeCloses: 33,
+
+  /**
+   * The faintest the ink gets before a slip disappears, from 0 (invisible)
+   * to 1 (never fades). It's a floor so that a nearly-gone slip can still be
+   * read by someone with low vision. Lower = ghostlier, harder to read.
+   * (Proposed by Claude; Evan to tune by eye.)
+   */
+  fadeFloor: 0.45,
+
   // MARK: The "new print-out" cue
 
   /**

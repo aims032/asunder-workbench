@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DeskTuning, printerLogIsRead, printerLogNewestFirst } from '../core';
+import { DeskTuning, printerLogInk, printerLogIsRead, printerLogNewestFirst } from '../core';
 import type { Printout } from '../core';
 import { MONOSPACED_FONT } from '../fonts';
 import type { PrinterModel } from './PrinterModel';
@@ -10,6 +10,7 @@ import { useStore } from './Store';
  * PLACEHOLDER printer: the roll of print-outs, newest at the top, as plain
  * text. Tapping a slip marks it read; what tapping a LINE does is still Open.
  * No paper look, no printing animation yet (Phase 4 / Evan's art).
+ * Slips do fade: each one is drawn fainter the more times the app has closed.
  *
  * The two test buttons only appear while developing (__DEV__), so you can
  * see a print-out arrive before any transmission exists. One prints a slip
@@ -35,7 +36,12 @@ export function PrinterPanel({ model }: { model: PrinterModel }) {
       <ScrollView style={styles.roll}>
         {slips.length === 0 && <Text style={styles.small}>nothing printed yet</Text>}
         {slips.map((slip) => (
-          <Pressable key={slip.id} onPress={() => model.markRead(slip.id)} style={styles.slip}>
+          <Pressable
+            key={slip.id}
+            onPress={() => model.markRead(slip.id)}
+            // The fade: the whole slip gets fainter with each app close.
+            style={[styles.slip, { opacity: printerLogInk(log, slip.id) }]}
+          >
             <Text style={styles.small}>
               {printerLogIsRead(log, slip.id) ? '  ' : '● '}
               TRANSMISSION {String(slip.transmission).padStart(3, '0')}
