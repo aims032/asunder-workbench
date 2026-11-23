@@ -6,6 +6,7 @@ import {
   MipmapMode,
   Shader,
   useImage,
+  useVideo,
 } from '@shopify/react-native-skia';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -26,7 +27,7 @@ import type { BandPosition, ScopeOverride } from '../core';
 import type { SwitchboardModel } from '../desk/SwitchboardModel';
 import { useStore } from '../desk/Store';
 import { MONOSPACED_FONT } from '../fonts';
-import { LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
+import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
 import { SCOPE_SHADER } from './ScopeShader';
 
 // THE SCOPE'S SCREEN (CRT mode): the picture from whatever phone line is
@@ -65,12 +66,23 @@ export function ScopeScreen({
     patched.value = line !== null && LINE_PICTURES[line] !== undefined;
   }, [line, patched]);
 
-  // The pictures. useImage loads a bundled file; it's null until loaded.
-  // With nothing patched in there's no picture to show, so the override's
-  // picture stands in (it's hidden under the snow anyway).
+  // The pictures. useImage loads a bundled still and useVideo a clip; each
+  // gives nothing until it has loaded. With nothing patched in there's no
+  // picture to show, so the override's picture stands in (it's hidden under
+  // the snow anyway).
+  const linePicture = line !== null ? LINE_PICTURES[line] : undefined;
   const overrideImage = useImage(OVERRIDE_PICTURES[OVERRIDE_PREVIEW_PICTURE]);
-  const lineImage = useImage(line !== null ? LINE_PICTURES[line] : undefined);
-  const picture = lineImage ?? overrideImage;
+  const lineImage = useImage(linePicture?.kind === 'image' ? linePicture.file : undefined);
+  const clip = useVideo(linePicture?.kind === 'video' ? bundledFileUri(linePicture.file) : null, {
+    looping: true,
+    volume: 0,
+  });
+  const isClip = linePicture?.kind === 'video';
+  // The picture the tube draws this frame: the clip's latest frame, or the still.
+  const picture = useDerivedValue(() => {
+    const still = lineImage ?? overrideImage;
+    return isClip ? (clip.currentFrame.value ?? still) : still;
+  });
 
   // Time, and the roll of the picture, moved on every frame.
   const time = useSharedValue(0);
@@ -130,7 +142,7 @@ export function ScopeScreen({
         previewStartsAt.value = Date.now() / 1000;
       }}
     >
-      {shader && picture && overrideImage && size.width > 0 ? (
+      {shader && overrideImage && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <Fill>
             <Shader source={shader} uniforms={uniforms}>
