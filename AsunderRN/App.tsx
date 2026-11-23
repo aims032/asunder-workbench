@@ -5,10 +5,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { createBench } from './src/Bench';
-import { ContentView } from './src/ContentView';
+import { Screens } from './src/Screens';
 
 /**
- * The top of the app. It makes the bench exactly once and shows the screen.
+ * The top of the app. It makes the bench exactly once and shows the screens.
  *
  * The two wrappers are plumbing the libraries need around everything:
  * one so touches can be tracked (gesture handler), one so the screen knows
@@ -21,7 +21,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <ContentView bench={bench} />
+        <Screens bench={bench} />
         <StatusBar style="light" />
       </SafeAreaProvider>
     </GestureHandlerRootView>

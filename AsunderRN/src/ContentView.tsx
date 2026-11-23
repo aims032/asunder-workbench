@@ -22,7 +22,8 @@ import { Readout } from './Readout';
 export function ContentView({ bench }: { bench: Bench }) {
   const display = currentBandDisplay;
   const dial = bench.dial;
-  // The parts of the screen to keep clear of (the notch, the home bar).
+  // The parts of the screen to keep clear of (the home bar). The notch at
+  // the top is handled by Screens.tsx, above the page switch.
   const insets = useSafeAreaInsets();
 
   // The radio turns on when the app opens, and comes back on if something
@@ -39,7 +40,7 @@ export function ContentView({ bench }: { bench: Bench }) {
   }, [bench]);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <View style={styles.clockLine}>
         <ClockLine />
       </View>
