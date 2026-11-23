@@ -510,11 +510,86 @@ export const DeskTuning = {
   // MARK: The screen
 
   /**
-   * How much of the desk screen the switchboard gets, from 0 to 1. The
-   * printer gets the rest. Bigger = more switchboard, less paper.
-   * (Placeholder split: the real layout is still being brainstormed.)
+   * How much of the desk's WIDTH the cord board gets, from 0 to 1. The
+   * printer sits beside it and gets the rest (Evan, Nov 23: the cord-board
+   * look, printer off to one side). Bigger = bigger jacks, a narrower strip
+   * of paper.
    */
-  switchboardShare: 0.6,
+  switchboardShare: 0.62,
+
+  /**
+   * Which side the printer sits on. true = right, false = left.
+   */
+  printerOnRight: true,
+
+  // MARK: The cord board
+
+  /**
+   * How many holes each phone line has on the board. 2 means two instruments
+   * can listen to the same line at once. More = a taller field of jacks.
+   */
+  jacksPerLine: 2,
+
+  /**
+   * How big a jack hole is drawn, as a share of the space between jacks
+   * (0 to 1). Bigger = fatter holes, closer together.
+   */
+  jackSize: 0.55,
+
+  /**
+   * Room kept for the small name labels above the jacks and under the
+   * cords, in points.
+   */
+  boardLabelSpace: 30,
+
+  /**
+   * How far the jacks sit above the shelf the cords rest in, in jack
+   * spacings. Smaller = a shorter reach from cord to jack and more room
+   * left above the board; bigger = longer cords.
+   */
+  shelfGap: 4,
+
+  /**
+   * How close a plug has to be to an empty jack before it will drop in,
+   * measured in jack spacings. Bigger = more forgiving, "magnetic"; smaller
+   * = you have to aim.
+   */
+  cordSnapReach: 0.75,
+
+  /**
+   * How close a touch has to be to a plug to pick it up, in jack spacings.
+   * Bigger = easier to grab, but neighbouring plugs get harder to tell apart.
+   */
+  cordGrabReach: 0.9,
+
+  /**
+   * How far above your fingertip the plug rides while you carry it, in
+   * points, so your finger doesn't hide the jack you're aiming at.
+   * 0 = right under the finger.
+   */
+  cordLift: 22,
+
+  /**
+   * How much slack a cord has, in jack spacings. Bigger = cords hang in deep
+   * loops; 0 = every cord is a straight line.
+   */
+  cordSlack: 1.6,
+
+  /**
+   * The spring that carries a plug the last little way into a jack, or back
+   * to the shelf when you let go. Stiffer = snappier. More damping = less
+   * bounce (around 12 it wobbles once; 30 and up it just slides home).
+   */
+  cordSpringStiffness: 260,
+  cordSpringDamping: 20,
+
+  /**
+   * How strong the three buzzes are, from 0 to 1 (0 = none): picking a plug
+   * up, passing over a jack it could drop into, and the plug going home.
+   */
+  cordGrabHaptic: 0.4,
+  cordHoverHaptic: 0.3,
+  cordPlugHaptic: 1,
 
   // MARK: The printer
 

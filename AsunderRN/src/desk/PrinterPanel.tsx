@@ -74,7 +74,7 @@ function testPrintout(transmission: number): Printout {
 const styles = StyleSheet.create({
   panel: { flex: 1, padding: 12, gap: 8 },
   title: { fontFamily: MONOSPACED_FONT, fontSize: 12, color: '#8e8e93' },
-  testRow: { flexDirection: 'row', gap: 8 },
+  testRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   test: { borderWidth: 1, borderColor: '#5c5c5c', paddingVertical: 6, paddingHorizontal: 8 },
   roll: { flex: 1 },
   slip: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#2a2a2a' },

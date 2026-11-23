@@ -27,5 +27,6 @@ export * from './Analyzer';
 export * from './ReceiverChain';
 export * from './Printouts';
 export * from './Switchboard';
+export * from './CordBoard';
 export * from './Transmission';
 export * from './LineInput';
