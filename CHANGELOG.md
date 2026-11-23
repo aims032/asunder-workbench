@@ -1,0 +1,41 @@
+# Changelog
+
+A plain-language record of what changed in the app and why, newest first.
+It covers the `dev` branch, where new work lands. (`main` is the last good version.)
+
+**How this file stays up to date:** a scheduled Claude task runs every evening (about 9:45 PM Eastern).
+It looks at what reached `dev` since the last run, whether through a pull request (PR) or a direct commit,
+writes a line or two for each change here, refreshes the "What's new" box at the top of the README,
+and commits both straight to `dev`. If nothing changed, it does nothing.
+
+*A few words that come up:* a **PR** (pull request) is a proposed change waiting to be accepted.
+**Merged** means it was accepted and is now part of the branch. Numbers like **#12** are PR numbers on GitHub.
+
+<!-- changelog:last-checked 7725885 2026-11-23T19:30:00Z -->
+
+## Waiting to be merged into dev
+
+These are finished but not accepted yet. They move into a dated entry below once merged.
+
+- **The paper fades every time the app closes** (#12). Each print-out gets a little fainter with every close, and after 33 closes it is gone, unless Bess prints a fresh copy when you find that transmission on the band again. Why: Evan's rule for the printer (Nov 23). It adds one small library for saving a file on the phone, so the phone app needs a rebuild after this lands.
+- **The analyzer can listen to a phone line** (#13, needs #12 first). A new INPUT key switches the analyzer between BAND (what it always showed) and LINE (the sound on whichever line is patched into it on the switchboard). Why: so voices can be seen as their own shapes on screen. The two voices are computed stand-ins until real recordings exist.
+
+## 2026-11-23
+
+- **New `dev` branch.** From now on new work goes to `dev`, and `main` stays as the last good version until Evan says to bring `dev` over. Why: so experiments never break the version that works.
+- **The desk: a second screen** (#11). The switchboard sits on top and the printer's read-outs underneath, with a BENCH · DESK switch to flip between the bench and the desk. You can patch cables and mark print-outs as read. Everything on it is a placeholder look. Why: Evan decided the switchboard and the printer share a screen, since both are visual story pieces.
+- **The spectrum analyzer is in the main app** (#10). The second instrument on the bench, modeled on a real Keysight analyzer: a live trace and a scrolling history under it, with keys and a knob. Why: it is the next instrument in the build plan.
+- **Fix: the iPhone build.** A security setting in Xcode (Apple's app-building tool) was blocking one of the build steps. It is now switched off automatically. Why: the app would not build on the phone without it.
+- **Fix: no vibration on iPhone.** The part that drives the phone's vibration was started too early, before the sound was set up, so it ran silently. It now starts after the sound does. Why: you should feel the dial's ticks.
+
+## 2026-11-20
+
+- **First version of the spectrum analyzer** (#9). Added the analyzer screen above the dial. (#10 on Nov 23 finished it off.)
+- **The React Native app becomes the main app** (#7). React Native is a way to write one app that runs on iPhone, Android and the web. The older Swift (iPhone-only) app is kept untouched on the `swift` branch for comparison. Why: one set of code instead of one per phone.
+- **Less work for the phone's sound engine** (#8). The code that makes the radio's sound was tidied so it uses less of the phone's processor. Why: so the sound doesn't stutter and the battery lasts longer.
+- **The wide band and the weather** (#4, #5). The radio's sound, the Carrier, the pulse when you lock onto a signal, sound that keeps playing in the background, and a dial that runs from radio to light. Why: the receiver's core feel.
+- **Quieter build logs** (#6). A helper that trims long, noisy output when installing or testing, so Claude can work faster. No change to the app itself.
+
+## 2026-11-17 to 2026-11-18
+
+- **The foundation** (#1, #3). The project set up, then the band, the shared clock (every phone agrees on the time in the story), the weekly rule, and the dial. Why: everything else is built on these.
