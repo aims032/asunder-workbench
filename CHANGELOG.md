@@ -11,7 +11,12 @@ and commits both straight to `dev`. If nothing changed, it does nothing.
 *A few words that come up:* a **PR** (pull request) is a proposed change waiting to be accepted.
 **Merged** means it was accepted and is now part of the branch. Numbers like **#12** are PR numbers on GitHub.
 
-<!-- changelog:last-checked dfc2f8b 2026-11-23T20:20:00Z -->
+<!-- changelog:last-checked 858b098 2026-11-24T02:50:00Z -->
+
+## Waiting to be merged into dev
+
+- **The oscilloscope: a TV-style screen on the bench** (draft PR #16). A small screen under the analyzer shows the picture on whichever phone line is patched into its jack: a photo, a looping clip, or a line drawing traced by one glowing green beam. Off the signal it's all snow; tune closer and the picture settles. A switch can swap the tube for crisp, flat pixels for Asunder (empty for now). Why: the scope is the next instrument, and it shows the scene feeds. Placeholder pictures only.
+- **Transmissions download when they unlock** (draft PR #17). Each transmission becomes a "pack" of its sound, clips, photos and script, kept online at Cloudflare (a hosting company). A tiny program there hands the phone only the packs whose unlock time has passed, and the phone keeps them so they play with no signal. Downloading is switched off until it's pointed at a server; nothing is set up online and no account has been made. Why: keeps the app download small, as Evan decided.
 
 ## 2026-11-23
 
