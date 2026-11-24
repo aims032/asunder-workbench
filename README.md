@@ -13,6 +13,7 @@ A radio receiver that belongs to the story's world, for iPhone and Android. See 
 - **Nov 23:** the desk, a second screen with the switchboard and the printer (#11).
 - **Nov 23:** the spectrum analyzer is in the main app (#10), plus fixes for the iPhone build and the missing vibration.
 - **Nov 23:** new `dev` branch for new work; `main` stays the last good version.
+- **Waiting to be merged:** the oscilloscope screen (#16) and transmissions that download when they unlock (#17).
 <!-- whats-new:end -->
 
 **Two versions of the app live here.** On Nov 19, 2026 the app was ported from Swift to React Native, so one set of code covers iPhone, Android and a web preview. The Swift app is kept, untouched, so the two can be compared side by side.
