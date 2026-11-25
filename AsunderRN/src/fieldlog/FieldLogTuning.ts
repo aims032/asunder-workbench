@@ -35,16 +35,23 @@ export const FieldLogTuning = {
 
   /** The paper. */
   paperColor: '#EFE6CF',
-  /** The faint blue ruled lines. */
-  ruleColor: 'rgba(70, 110, 160, 0.22)',
-  /** The red margin line. */
-  marginColor: 'rgba(170, 60, 50, 0.35)',
+  /**
+   * What the paper looks like: 'blank' or 'dotted' (Evan, Nov 25: blank or
+   * dotted paper, not ruled).
+   */
+  paperStyle: 'dotted' as 'blank' | 'dotted',
+  /** Dotted paper: the gap between dots, in points. Bigger = a looser grid. */
+  dotSpacing: 20,
+  /** Dotted paper: how wide each dot is, in points. */
+  dotSize: 2,
+  /** Dotted paper: the dot colour. Keep it faint so the ink sits on top. */
+  dotColor: 'rgba(60, 50, 35, 0.28)',
   /** Graphite pencil: the main writing. */
   inkColor: '#2D2F36',
   /** Red pencil: corrections and circles. */
   correctionColor: '#A8322A',
   /** The words that surface as the math fades (a slightly warmer ink). */
   wordsColor: '#3B2A1E',
-  /** Distance between ruled lines, in points. Every line of writing sits on one. */
-  ruleSpacing: 30,
+  /** How far apart lines of writing sit, in points. Bigger = airier pages. */
+  lineSpacing: 30,
 };

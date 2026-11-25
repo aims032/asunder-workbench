@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
+import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -17,7 +18,8 @@ import { FieldLogTuning as T } from './FieldLogTuning';
 /**
  * THE FIELD LOG SCREEN: the Physicist's notebook, one page at a time.
  *
- * PLACEHOLDER LOOK: ruled cream paper and the phone's own handwriting-style
+ * PLACEHOLDER LOOK: cream paper, blank or dotted (FieldLogTuning.paperStyle;
+ * Evan, Nov 25: no ruled lines), and the phone's own handwriting-style
  * font. The real paper, ink and hand are Evan's art (Phase 4); the colours
  * and spacing are in FieldLogTuning so they're easy to swap.
  *
@@ -104,17 +106,44 @@ export function FieldLogScreen() {
   );
 }
 
-/** One sheet: ruled lines, margin, and the writing laid on the rules. */
+/**
+ * The dot grid of dotted paper. All the dots are one shape (a "path" with a
+ * tiny circle added for each dot), so the phone draws them in one go.
+ */
+function Dots({ width, height }: { width: number; height: number }) {
+  const path = useMemo(() => {
+    const dots = Skia.PathBuilder.Make();
+    const gap = T.dotSpacing;
+    for (let y = gap; y < height; y += gap) {
+      for (let x = gap; x < width; x += gap) {
+        dots.addCircle(x, y, T.dotSize / 2);
+      }
+    }
+    return dots.build();
+  }, [width, height]);
+  return (
+    <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Path path={path} color={T.dotColor} />
+    </Canvas>
+  );
+}
+
+/** One sheet: the paper (blank or dotted) with the writing laid on it. */
 function Paper({ page, clock }: { page: LogPage; clock: number }) {
-  // Enough rules to fill the page, plus a few spare at the bottom.
+  // The sheet's size on screen, measured once it's laid out (for the dots).
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  // Tall enough for the writing, plus some spare paper at the bottom.
   const rows = 4 + page.before.length + page.lines.length + page.after.length + 6;
 
   return (
-    <View style={[styles.paper, { minHeight: rows * T.ruleSpacing }]}>
-      {Array.from({ length: rows }, (_, i) => (
-        <View key={i} style={[styles.rule, { top: (i + 1) * T.ruleSpacing }]} />
-      ))}
-      <View style={styles.marginLine} />
+    <View
+      style={[styles.paper, { minHeight: rows * T.lineSpacing }]}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setSize({ width, height });
+      }}
+    >
+      {T.paperStyle === 'dotted' && size.width > 0 && <Dots width={size.width} height={size.height} />}
 
       <View style={styles.writing}>
         <Text style={styles.date}>{page.date}</Text>
@@ -229,7 +258,8 @@ function Segment({
   );
 }
 
-const MARGIN = 44;
+/** Empty paper to the left of the writing, in points. */
+const MARGIN = 26;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#14110d' },
@@ -240,37 +270,28 @@ const styles = StyleSheet.create({
     backgroundColor: T.paperColor,
     borderRadius: 2,
     overflow: 'hidden',
-    paddingBottom: T.ruleSpacing,
+    paddingBottom: T.lineSpacing,
   },
-  rule: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: T.ruleColor },
-  marginLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: MARGIN,
-    width: 1,
-    backgroundColor: T.marginColor,
-  },
-  writing: { paddingLeft: MARGIN + 10, paddingRight: 14, paddingTop: T.ruleSpacing * 0.25 },
+  writing: { paddingLeft: MARGIN, paddingRight: 14, paddingTop: T.lineSpacing * 0.25 },
   date: {
     fontFamily: HAND_FONT,
     fontSize: 14,
     color: T.inkColor,
     textAlign: 'right',
-    height: T.ruleSpacing * 0.75,
+    height: T.lineSpacing * 0.75,
   },
   heading: {
     fontFamily: HAND_FONT,
     fontSize: 19,
     color: T.inkColor,
-    height: T.ruleSpacing,
+    height: T.lineSpacing,
     textDecorationLine: 'underline',
   },
-  prose: { fontFamily: HAND_FONT, fontSize: 17, color: T.inkColor, height: T.ruleSpacing },
-  afterMath: { marginTop: T.ruleSpacing * 0.5 },
-  mathLine: { minHeight: T.ruleSpacing * 1.5, justifyContent: 'flex-end' },
+  prose: { fontFamily: HAND_FONT, fontSize: 17, color: T.inkColor, height: T.lineSpacing },
+  afterMath: { marginTop: T.lineSpacing * 0.5 },
+  mathLine: { minHeight: T.lineSpacing * 1.5, justifyContent: 'flex-end' },
   marginNote: {
-    minHeight: T.ruleSpacing,
+    minHeight: T.lineSpacing,
     alignItems: 'flex-end',
     transform: [{ rotate: '-3deg' }],
   },
@@ -284,7 +305,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   glyphRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' },
-  // A long line wraps onto the next rule instead of running off the page.
+  // A long line wraps onto the next line instead of running off the page.
   segment: { flexDirection: 'row', flexWrap: 'wrap', flexShrink: 1, alignItems: 'flex-end' },
   glyph: { fontFamily: HAND_FONT },
   circle: {
