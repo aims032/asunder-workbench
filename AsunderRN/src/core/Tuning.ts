@@ -788,6 +788,41 @@ export const TuneInTuning = {
    */
   voiceprintLiftDb: 16,
 
+  // MARK: The zoom window
+
+  /**
+   * The analyzer's ZOOM WINDOW (Evan, Nov 25: always on, like a real
+   * analyzer's zone span): a small second trace in the corner that always
+   * shows just the few notches around the dial, magnified. It's where a
+   * voiceprint becomes readable without touching SPAN.
+   * This is how many notches it shows across. A transmission is about 3
+   * notches wide, so 6 puts it in the middle half. Smaller = more magnified.
+   */
+  zoomNotches: 6,
+
+  /** How many points across the zoom trace. More = finer, a bit more work per frame. */
+  zoomPoints: 141,
+
+  /**
+   * The zoom window's own RBW (see the analyzer notes: narrower = lower
+   * floor but a slower sweep). 1e-4 sweeps the window about 6 times a
+   * second, quick enough to follow speech.
+   */
+  zoomRbw: 1e-4,
+
+  /**
+   * The zoom window magnifies level too. Its top edge is this many dB below
+   * the screen's reference level (REF), and it shows zoomRangeDb from top to
+   * bottom (the big trace shows 100). Smaller range = taller voiceprint, but
+   * a strong signal can run off the top.
+   */
+  zoomTopDropDb: 15,
+  zoomRangeDb: 50,
+
+  /** How much of the screen's width and of the trace's height the window takes, 0 to 1. */
+  zoomWidthShare: 0.4,
+  zoomHeightShare: 0.42,
+
   // MARK: How close counts
 
   /**
