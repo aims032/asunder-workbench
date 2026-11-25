@@ -51,7 +51,7 @@ export function ContentView({ bench }: { bench: Bench }) {
       </View>
 
       <View style={styles.scope}>
-        <ScopeScreen needle={dial.needle} switchboard={bench.switchboard} />
+        <ScopeScreen needle={dial.needle} switchboard={bench.switchboard} player={bench.player} />
       </View>
 
       <Readout needle={dial.needle} display={display} startAt={DIAL_START} />
