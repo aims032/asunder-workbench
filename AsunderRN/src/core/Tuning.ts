@@ -815,6 +815,35 @@ export const ScopeTuning = {
   /** How much empty space is left around the drawing, as a fraction of the screen. */
   xyMargin: 0.1,
 
+  // MARK: The signal (the sound the scope draws)
+
+  /**
+   * With nothing on its input, a real scope in XY mode shows a single dot.
+   * Evan asked for the flat line in every mode (Nov 25). true = flat line in
+   * XY too; false = the dot, to try it.
+   */
+  idleFlatLineInXY: true,
+
+  /**
+   * How tall the fuzz is when the dial is nowhere near the signal, where 1
+   * is the loudest a voice gets. Bigger = a wilder trace off the signal.
+   */
+  signalFuzz: 0.45,
+
+  /**
+   * How fine the fuzz and the breath in a stand-in voice are: how many new
+   * random values a second. Higher = a finer, hissier fuzz; lower = a
+   * slower, lumpier wobble.
+   */
+  signalGrainHz: 8_000,
+
+  /**
+   * How many harmonics (multiples of the pitch) a stand-in voice's wave is
+   * built from. More = a spikier, more detailed wave, and more work for the
+   * phone each frame. Only matters until there are real recordings.
+   */
+  signalHarmonics: 24,
+
   // MARK: Asunder's override
 
   /**
