@@ -819,9 +819,11 @@ export const ScopeTuning = {
 
   /**
    * How many big square pixels across the screen when Asunder takes it
-   * over. Fewer = chunkier pixels. PLACEHOLDER: what she shows is Evan's.
+   * over. Fewer = chunkier pixels (Evan, Nov 25: "even more pixelated", so
+   * down from 64). Her picture is cut into this many squares whatever size
+   * its file is. PLACEHOLDER: what she shows is Evan's.
    */
-  overridePixels: 64,
+  overridePixels: 24,
 
   /** How long she takes to snap the screen over, in seconds. Shorter = more sudden. */
   overrideInSeconds: 0.08,
