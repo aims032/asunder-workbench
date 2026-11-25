@@ -373,7 +373,7 @@ export function AnalyzerScreen({
           )}
         </Canvas>
         {onLine || size.width === 0 ? null : (
-          <Text style={[styles.dim, styles.zoomLabel, { left: zoomBox.x + 4, top: zoomBox.y + zoomBox.height - 14 }]}>
+          <Text style={[styles.dim, styles.zoomLabel, { left: zoomBox.x + 4, top: zoomBox.y + 3 }]}>
             ZOOM {spanLabel(readout.center, ZOOM_SPAN)}
           </Text>
         )}
