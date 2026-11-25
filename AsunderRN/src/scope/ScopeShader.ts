@@ -93,28 +93,6 @@ half4 main(float2 xy) {
 }
 `;
 
-// ASUNDER'S PIXELS ON THEIR OWN: the same square pixels as step 6 above, for
-// drawing over the XY line drawing (which isn't a tube picture). `amount` is
-// how fully she has the screen; at 0 this draws nothing.
-const OVERRIDE_SOURCE = `
-uniform shader override;
-uniform float2 size;
-uniform float overrideAmount;
-uniform float overridePixels;
-
-half4 main(float2 xy) {
-  float cell = size.x / overridePixels;
-  float2 snapped = (floor(xy / cell) + 0.5) * cell;
-  return half4(override.eval(snapped).rgb, 1.0) * overrideAmount;
-}
-`;
-
-/** The compiled override-only program. null if the phone couldn't compile it (logged). */
-export const OVERRIDE_SHADER = Skia.RuntimeEffect.Make(OVERRIDE_SOURCE);
-if (!OVERRIDE_SHADER) {
-  console.error('[scope] the override shader failed to compile');
-}
-
 /** The compiled tube program. null if the phone couldn't compile it (logged). */
 export const SCOPE_SHADER = Skia.RuntimeEffect.Make(SOURCE);
 if (!SCOPE_SHADER) {

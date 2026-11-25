@@ -2,6 +2,7 @@ import {
   Canvas,
   FilterMode,
   Fill,
+  Image,
   ImageShader,
   MipmapMode,
   Shader,
@@ -29,7 +30,7 @@ import type { SwitchboardModel } from '../desk/SwitchboardModel';
 import { useStore } from '../desk/Store';
 import { MONOSPACED_FONT } from '../fonts';
 import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
-import { OVERRIDE_SHADER, SCOPE_SHADER } from './ScopeShader';
+import { SCOPE_SHADER } from './ScopeShader';
 import { useVectorArt, XYTrace } from './XYTrace';
 
 // THE SCOPE'S SCREEN: the picture from whatever phone line is patched into
@@ -149,12 +150,6 @@ export function ScopeScreen({
 
   const rect = { x: 0, y: 0, width: size.width, height: size.height };
   const shader = SCOPE_SHADER;
-  const overrideOnly = OVERRIDE_SHADER;
-  const overrideUniforms = useDerivedValue(() => ({
-    size: [Math.max(1, size.width), Math.max(1, size.height)],
-    overrideAmount: overrideAmount.value,
-    overridePixels: ScopeTuning.overridePixels,
-  }));
 
   return (
     <Pressable
@@ -167,19 +162,17 @@ export function ScopeScreen({
       {isVector && overrideImage && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <XYTrace art={art} width={size.width} height={size.height} look={xyLook} time={time} />
-          {/* Asunder's square pixels, over the line drawing. */}
-          {overrideOnly ? (
-            <Fill>
-              <Shader source={overrideOnly} uniforms={overrideUniforms}>
-                <ImageShader
-                  image={overrideImage}
-                  fit="cover"
-                  rect={rect}
-                  sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
-                />
-              </Shader>
-            </Fill>
-          ) : null}
+          {/* Asunder's crisp pixels, over the line drawing. */}
+          <Image
+            image={overrideImage}
+            x={0}
+            y={0}
+            width={size.width}
+            height={size.height}
+            fit="cover"
+            opacity={overrideAmount}
+            sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
+          />
         </Canvas>
       ) : null}
       {!isVector && shader && overrideImage && size.width > 0 ? (
