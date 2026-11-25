@@ -1,4 +1,5 @@
 import type { LogPage } from './FieldLogPages';
+import { signalLogHeader, TRANSMISSION_SCHEDULE } from '../core';
 
 // THE FIELD LOG'S LOGIC: no drawing here, just the rules, so they can be
 // tested. The screen (FieldLogScreen.tsx) asks these functions what to draw.
@@ -136,3 +137,17 @@ export function scriptGlyphs(text: string): Glyph[] {
   }
   return glyphs;
 }
+
+/**
+ * The frequency-and-time header for a page ("14.23 MHz · 02:10"), worked out
+ * from the transmission its `signal` names, or null if it has none (or names
+ * a transmission that isn't in the schedule).
+ */
+export function pageSignalHeader(page: LogPage): string | null {
+  if (page.signal === undefined) {
+    return null;
+  }
+  const entry = TRANSMISSION_SCHEDULE.find((e) => e.id === page.signal);
+  return entry === undefined ? null : signalLogHeader(entry);
+}
+

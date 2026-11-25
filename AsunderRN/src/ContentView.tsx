@@ -46,7 +46,7 @@ export function ContentView({ bench }: { bench: Bench }) {
       </View>
 
       <View style={styles.analyzer}>
-        <AnalyzerPanel model={bench.analyzer} needle={dial.needle} />
+        <AnalyzerPanel model={bench.analyzer} needle={dial.needle} tuneIn={bench.tuneIn.status} />
       </View>
 
       <Readout needle={dial.needle} display={display} startAt={DIAL_START} />

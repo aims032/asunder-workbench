@@ -5,6 +5,7 @@ import {
   fadeOrder,
   glyphInk,
   openPages,
+  pageSignalHeader,
   parseInk,
   scriptGlyphs,
   wordsInk,
@@ -117,7 +118,11 @@ function Paper({ page, clock }: { page: LogPage; clock: number }) {
       <View style={styles.marginLine} />
 
       <View style={styles.writing}>
-        <Text style={styles.date}>{page.date}</Text>
+        <View style={styles.topRow}>
+          {/* The frequency and time the Physicist jots down: a clue to where to tune. */}
+          <Text style={styles.signalHeader}>{pageSignalHeader(page) ?? ''}</Text>
+          <Text style={styles.date}>{page.date}</Text>
+        </View>
         <Text style={styles.heading}>{page.heading}</Text>
         {page.before.map((text, i) => (
           <Text key={`b${i}`} style={styles.prose}>
@@ -252,12 +257,13 @@ const styles = StyleSheet.create({
     backgroundColor: T.marginColor,
   },
   writing: { paddingLeft: MARGIN + 10, paddingRight: 14, paddingTop: T.ruleSpacing * 0.25 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', height: T.ruleSpacing * 0.75 },
+  signalHeader: { fontFamily: HAND_FONT, fontSize: 14, color: T.inkColor },
   date: {
     fontFamily: HAND_FONT,
     fontSize: 14,
     color: T.inkColor,
     textAlign: 'right',
-    height: T.ruleSpacing * 0.75,
   },
   heading: {
     fontFamily: HAND_FONT,

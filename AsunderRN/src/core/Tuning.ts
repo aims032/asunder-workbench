@@ -712,3 +712,130 @@ export const LineTuning = {
   /** How fast a voice gets weaker going up, in dB per doubling of frequency. */
   tiltDbPerOctave: 6,
 };
+
+// TUNE-IN TUNING: finding a transmission on the band (Evan, Nov 25).
+//
+// Every transmission sits at ONE fixed frequency, the same on every phone,
+// somewhere among the band's hundreds of notches. Finding it is the skill:
+//   - far off, the analyzer shows it as a faint bump above the static,
+//   - tuning closer, the bump sharpens into the speaker's voiceprint and the
+//     static thins out,
+//   - resting right on it (locked) for a moment makes Bess print it.
+// Where each transmission lives is in TransmissionSchedule.ts; these numbers
+// are only about how finding one FEELS. Kept apart from Tuning for the same
+// reason as AnalyzerTuning (the Swift parity check). Change these freely.
+export const TuneInTuning = {
+  // MARK: While building
+
+  /**
+   * true = every transmission in the schedule is on the band right now,
+   * whatever day it is, so you can try them all while building. Set it to
+   * false and each one only appears from its own `onBandFromDay`.
+   * Like FieldLogTuning.unlockedThrough: turn this off before shipping.
+   */
+  everythingOnTheBand: true,
+
+  /**
+   * OPEN (Evan to decide): once a transmission is on the band, does it stay
+   * there for good, or is it only there at certain times? Built: it STAYS
+   * (this is true). Only-at-certain-times is not built yet; flipping this to
+   * false does nothing until it is.
+   */
+  staysOnceOnTheBand: true,
+
+  // MARK: How it looks on the analyzer
+
+  /**
+   * How wide a transmission is on the band, in notches either side of its
+   * center. Wider = a broader bump, and more room for its voiceprint when
+   * you zoom in (narrowest SPAN shows about 7 notches across).
+   */
+  signalHalfWidthDetents: 1.5,
+
+  /**
+   * How tall the bump is when you're nowhere near it, in dB. The static
+   * floor sits around -94 to -102, so -90 is a faint bump you have to look
+   * for. Higher = easier to spot from far away.
+   */
+  faintDb: -90,
+
+  /**
+   * How tall it is when you're locked on, in dB (the voice's loudest
+   * harmonic). It climbs from faintDb to this as you tune in.
+   * (The Carrier's line is -62, for comparison.)
+   */
+  lockedDb: -64,
+
+  /**
+   * What's left of the bump between syllables when locked on, 0 to 1 of its
+   * full height. Keeps a faint outline so it doesn't vanish when nobody's
+   * talking. 0 = it goes completely dark between words.
+   */
+  silentShare: 0.06,
+
+  /**
+   * How fat each harmonic of the voiceprint is on the band, as a share of
+   * the voice's pitch. Fatter = a bolder comb that's easy to read; thinner =
+   * finer, closer to the LINE screen, but spikes can slip between points.
+   */
+  bandHarmonicShare: 0.18,
+
+  /**
+   * How much the voiceprint is lifted on the band, in dB. A voice's
+   * harmonics mostly sit well below its single loudest one, so without a
+   * lift the print hides under the bump's outline. Bigger = a bolder,
+   * spikier print when locked on.
+   */
+  voiceprintLiftDb: 16,
+
+  // MARK: How close counts
+
+  /**
+   * How quickly "clarity" (the voiceprint, the thinning static) falls off as
+   * you tune away, in notches. About 60% clear at this many notches off,
+   * nearly nothing past three times this. Bigger = you can be sloppier.
+   */
+  clarityWidthDetents: 2,
+
+  /**
+   * At this clarity (0 to 1) or more, you're "close": the voiceprint is half
+   * formed and the sound starts to clear. Below it, it's just a bump.
+   * OPEN (Evan): what close-but-not-locked should give you. Built: a
+   * partial voiceprint and partly cleared sound.
+   */
+  closeFromClarity: 0.3,
+
+  /**
+   * How long you have to sit locked on before Bess prints it, in seconds.
+   * Locked means within Tuning.lockDistance of the center (the same
+   * closeness the Carrier's lock pulse uses). Longer = more deliberate.
+   */
+  lockHoldSeconds: 1.5,
+
+  /** How many times a second the app checks whether you're locked on. */
+  checksPerSecond: 8,
+
+  // MARK: How it sounds
+
+  /**
+   * How much the static quiets when you're locked on, 0 to 1 (0.6 = 60%
+   * quieter). Close-but-not-locked gets part of this. There's no voice in
+   * the speaker yet (nothing's recorded); the real voice track comes in here.
+   */
+  staticQuieting: 0.6,
+
+  // MARK: The clue print-out
+
+  /**
+   * The word at the top of the bare slip Bess prints when a new transmission
+   * comes onto the band (a rough range and a time, no words). Evan's to change.
+   */
+  noticeWord: 'SIGNAL',
+
+  /**
+   * How rough the range on that slip is, in significant digits. 3 turns
+   * 14.23 MHz into "14.2–14.3". 2 would be "14–15" (much harder to find);
+   * 4 gives it away.
+   */
+  noticeDigits: 3,
+};

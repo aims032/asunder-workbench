@@ -22,6 +22,15 @@
  *   fadesInto  The words that show up underneath as the symbols fade.
  *   margin     true = a small note in the margin instead of a main line.
  *
+ * THE FREQUENCY HEADER (Evan, Nov 25)
+ * Out of lab habit, the Physicist writes a frequency and a time at the top of
+ * an entry. Give a page `signal: 'transmission-002'` and its header is filled
+ * in from TransmissionSchedule.ts (the frequency as the dial shows it, and
+ * that entry's logTime), so the clue and the band can never disagree. Leave
+ * `signal` out for no header. Which page points to which transmission is
+ * yours: the ones below point each page at the NEXT transmission, as a
+ * placeholder.
+ *
  * WHEN A PAGE SHOWS
  * `unlocksAt` is the transmission number that reveals the page. Unlocking is
  * a stub for now: FieldLogTuning.unlockedThrough decides how many are open
@@ -42,6 +51,11 @@ export interface LogPage {
   unlocksAt: number;
   /** Shown in the top corner, like a date written on the page. */
   date: string;
+  /**
+   * Optional: the id of a transmission in TransmissionSchedule.ts. Its
+   * frequency and time are written as this page's header.
+   */
+  signal?: string;
   /** The page's heading. */
   heading: string;
   /** Lines of writing above the math. */
@@ -61,6 +75,7 @@ export const FIELD_LOG_PAGES: LogPage[] = [
     id: 'coupling',
     unlocksAt: 1,
     date: '[DATE: Evan]',
+    signal: 'transmission-002', // PLACEHOLDER: which clue goes on which page is Evan's
     heading: '[LOG HEADING: Evan]',
     before: ['[LOG ENTRY: Evan]'],
     lines: [
@@ -76,6 +91,7 @@ export const FIELD_LOG_PAGES: LogPage[] = [
     id: 'cost-per-message',
     unlocksAt: 2,
     date: '[DATE: Evan]',
+    signal: 'transmission-003', // PLACEHOLDER
     heading: '[LOG HEADING: Evan]',
     before: ['[LOG ENTRY: Evan]'],
     lines: [

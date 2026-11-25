@@ -5,6 +5,7 @@ import {
   createReceiverChain,
   createReceiverTargets,
   receptionTargets,
+  signalReception,
 } from '../core';
 import type { ReceiverAudio } from './ReceiverAudio.types';
 
@@ -56,6 +57,7 @@ export function createReceiverAudio(): ReceiverAudio {
         chainRestartFade(chain);
       }
       receptionTargets(targets, dial.position, Date.now() / 1000, clock);
+      signalReception(targets, dial.position, Date.now() / 1000, clock);
       chainRender(chain, out, out.length, targets);
     };
     node.connect(newContext.destination);

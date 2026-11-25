@@ -2,11 +2,13 @@ import {
   fadeOrder,
   glyphInk,
   openPages,
+  pageSignalHeader,
   parseInk,
   scriptGlyphs,
   wordsInk,
 } from '../FieldLogModel';
 import { FIELD_LOG_PAGES } from '../FieldLogPages';
+import { TRANSMISSION_SCHEDULE } from '../../core';
 
 describe('parseInk', () => {
   test('plain text stays whole', () => {
@@ -115,4 +117,25 @@ describe('scriptGlyphs', () => {
 
 test('a subscript inside an exponent drops its underscore', () => {
   expect(scriptGlyphs('e^{γ_A}').map((g) => g.ch).join('')).toBe('eγA');
+});
+
+describe('the frequency header', () => {
+  test('a page with a signal gets that transmission\'s frequency and time', () => {
+    const page = { ...FIELD_LOG_PAGES[0], signal: 'transmission-001' };
+    expect(pageSignalHeader(page)).toBe('14.23 MHz · 02:10');
+  });
+
+  test('no signal, or one not in the schedule, means no header', () => {
+    expect(pageSignalHeader({ ...FIELD_LOG_PAGES[0], signal: undefined })).toBeNull();
+    expect(pageSignalHeader({ ...FIELD_LOG_PAGES[0], signal: 'nope' })).toBeNull();
+  });
+
+  test('every signal written on a page is a real transmission', () => {
+    const ids = TRANSMISSION_SCHEDULE.map((e) => e.id);
+    for (const page of FIELD_LOG_PAGES) {
+      if (page.signal !== undefined) {
+        expect(ids).toContain(page.signal);
+      }
+    }
+  });
 });

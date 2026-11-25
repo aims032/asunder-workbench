@@ -3,6 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 
 import type { BandPosition } from '../core';
+import { useStore } from '../desk/Store';
+import type { Store } from '../desk/Store';
+import type { TuneInStatus } from '../tunein/TuneInWatcher';
 import { MONOSPACED_FONT } from '../fonts';
 import { hapticTick } from '../haptics/Haptics';
 import {
@@ -35,6 +38,23 @@ import { Knob } from './Knob';
 
 const KNOB_SIZE = 64;
 
+/**
+ * Placeholder LOCK lamp: dark until the dial is locked on a transmission,
+ * then it brightens over the hold (TuneInTuning.lockHoldSeconds) and stays
+ * fully lit once Bess has printed it. It says nothing about how close you
+ * are before that: finding it is your job, the analyzer's picture is the guide.
+ */
+function LockLamp({ status }: { status: Store<TuneInStatus> }) {
+  const now = useStore(status);
+  const glow = now.stage === 'locked' ? 0.35 + 0.65 * now.hold : 0;
+  return (
+    <View style={styles.lamp}>
+      <View style={[styles.lampLight, { opacity: 0.15 + 0.85 * glow }]} />
+      <Text style={styles.keyName}>LOCK</Text>
+    </View>
+  );
+}
+
 /** Placeholder key: a plain box with its name, and its setting under it. Lit when active. */
 function PanelKey({
   name,
@@ -60,9 +80,11 @@ function PanelKey({
 export function AnalyzerPanel({
   model,
   needle,
+  tuneIn,
 }: {
   model: AnalyzerModel;
   needle: SharedValue<BandPosition>;
+  tuneIn: Store<TuneInStatus>;
 }) {
   const [panel, setPanel] = useState<PanelState>(initialPanel);
 
@@ -126,6 +148,7 @@ export function AnalyzerPanel({
           <PanelKey name="TRACE" value={TRACE_MODE_NAMES[panel.traceMode]} lit={false} onPress={nextTraceMode} />
           <PanelKey name="VIEW" value={VIEW_NAMES[panel.view]} lit={false} onPress={nextView} />
           <PanelKey name="INPUT" value={INPUT_NAMES[panel.input]} lit={false} onPress={nextInput} />
+          <LockLamp status={tuneIn} />
         </View>
         <Knob size={KNOB_SIZE} onStep={knobStep} />
       </View>
@@ -164,6 +187,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2e3134',
     alignItems: 'center',
+  },
+  lamp: {
+    width: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  lampLight: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#ffb020', // amber, like the lit keys
   },
   keyLit: {
     borderColor: '#ffb020', // amber: "this is what the knob changes"
