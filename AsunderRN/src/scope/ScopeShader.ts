@@ -8,7 +8,7 @@ import { Skia } from '@shopify/react-native-skia';
 // For each dot it works out, in order:
 //   1. the bulge of the glass (where on the picture this dot looks),
 //   2. the shake of its scanline and the roll of the picture,
-//   3. the picture there, smeared sideways and with a little glow,
+//   3. the picture there, in coarse blocks, smeared sideways and with a little glow,
 //   4. how much color is left, and how much snow covers it,
 //   5. the dark gaps between scanlines and the dark corners,
 //   6. then, if Asunder has the screen, crisp square pixels instead.
@@ -26,6 +26,7 @@ uniform float smear;
 uniform float jitter;
 uniform float color;
 uniform float lines;
+uniform float columns;
 uniform float lineDepth;
 uniform float bulge;
 uniform float vignette;
@@ -47,7 +48,10 @@ float3 tube(float2 uv) {
   float line = floor(uv.y * lines);
   float tick = floor(time * snowRate);
   float shake = (hash(float2(line, tick)) - 0.5) * 2.0 * jitter;
-  float2 p = float2(uv.x + shake, fract(uv.y + roll)) * size;
+  // Blocky picture: every dot in the same cell (one scanline tall, one
+  // column wide) looks at the same spot of the picture, the cell's middle.
+  float2 cell = float2((floor((uv.x + shake) * columns) + 0.5) / columns, (line + 0.5) / lines);
+  float2 p = float2(cell.x, fract(cell.y + roll)) * size;
 
   float s = smear * size.x;
   float3 c = picture.eval(p).rgb * 0.5
@@ -62,7 +66,8 @@ float3 tube(float2 uv) {
   float luma = dot(c, float3(0.299, 0.587, 0.114));
   c = mix(float3(luma), c, color);
 
-  float n = hash(floor(uv * size * 0.5) + float2(tick * 1.7, tick * 3.1));
+  // The snow comes in the same blocks as the picture.
+  float n = hash(floor(float2((uv.x + shake) * columns, line)) + float2(tick * 1.7, tick * 3.1));
   c = mix(c * pictureAmount, float3(n), snow);
 
   float gap = 0.5 + 0.5 * cos(uv.y * lines * 6.2831853);

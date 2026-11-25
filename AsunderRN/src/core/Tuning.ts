@@ -742,7 +742,7 @@ export const ScopeTuning = {
    * How much snow is left when tuned dead on, 0 to 1. A little keeps it
    * looking like a broadcast. 0 = a perfectly clean picture.
    */
-  snowClear: 0.06,
+  snowClear: 0.16,
 
   /** How far the picture smears sideways when barely tuned, as a fraction of the screen width. */
   smearLost: 0.02,
@@ -751,7 +751,7 @@ export const ScopeTuning = {
   jitterLost: 0.03,
 
   /** How far scanlines shake when tuned dead on. A tiny bit reads as "alive". */
-  jitterClear: 0.0015,
+  jitterClear: 0.004,
 
   /**
    * How fast the picture rolls up the screen when barely tuned, in screens a
@@ -768,11 +768,22 @@ export const ScopeTuning = {
 
   // MARK: The tube
 
-  /** How many scanlines the picture has. Fewer = chunkier lines. (Old US TV: about 480 visible.) */
-  scanlines: 240,
+  /**
+   * How many scanlines the picture has. Fewer = chunkier lines and a rougher
+   * picture. (Old US TV: about 480 visible. Evan, Nov 25: it looked too
+   * clean, so down from 240.)
+   */
+  scanlines: 80,
+
+  /**
+   * How many blocks across the picture is cut into. Fewer = blockier, more
+   * pixelated. A big number (like 2000) = no blocks at all. Together with
+   * `scanlines` this is the picture's resolution: 136 x 80 here.
+   */
+  pictureColumns: 136,
 
   /** How dark the gaps between scanlines are, 0 (no lines) to 1 (black gaps). */
-  scanlineDepth: 0.35,
+  scanlineDepth: 0.5,
 
   /** How much the glass bulges, 0 = flat. Bigger = more curve at the edges. */
   bulge: 0.12,
@@ -801,10 +812,10 @@ export const ScopeTuning = {
   xyWobbleLost: 0.02,
 
   /** How far it wobbles when tuned dead on. A tiny bit reads as "alive". */
-  xyWobbleClear: 0.0008,
+  xyWobbleClear: 0.003,
 
   /** How much of the grass (fuzz) is left when tuned dead on, 0 to 1. */
-  xyGrassClear: 0.05,
+  xyGrassClear: 0.2,
 
   /** How long the bright spot takes to trace the whole drawing once, in seconds. */
   xyTraceSeconds: 2.5,

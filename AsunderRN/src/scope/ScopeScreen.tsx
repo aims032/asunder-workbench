@@ -133,6 +133,7 @@ export function ScopeScreen({
       jitter: look.jitter,
       color: look.color,
       lines: T.scanlines,
+      columns: T.pictureColumns,
       lineDepth: T.scanlineDepth,
       bulge: T.bulge,
       vignette: T.vignette,
