@@ -817,7 +817,7 @@ export const TuneInTuning = {
    * a strong signal can run off the top.
    */
   zoomTopDropDb: 15,
-  zoomRangeDb: 50,
+  zoomRangeDb: 62,
 
   /** How much of the screen's width and of the trace's height the window takes, 0 to 1. */
   zoomWidthShare: 0.4,
