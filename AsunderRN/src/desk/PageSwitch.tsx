@@ -8,10 +8,11 @@ import { playPrintoutCueSound } from './PrintoutCueSound';
 import { useStore } from './Store';
 
 /** The pages you can switch between. The terminal will join them later. */
-export type Page = 'bench' | 'desk';
+export type Page = 'bench' | 'desk' | 'log';
 
 /**
- * PLACEHOLDER page switch: two words at the top, BENCH and DESK. How you
+ * PLACEHOLDER page switch: three words at the top, BENCH, DESK and LOG
+ * (the Physicist's field log). How you
  * really move between screens (swipe, a button on the hardware, something
  * in the drawing) is still to be decided.
  *
@@ -56,6 +57,10 @@ export function PageSwitch({
         <Text style={[styles.word, page === 'desk' && styles.current, glowing && styles.glow]}>
           DESK{unread > 0 ? ' •' : ''}
         </Text>
+      </Pressable>
+      <Text style={styles.word}>·</Text>
+      <Pressable onPress={() => onChange('log')}>
+        <Text style={[styles.word, page === 'log' && styles.current]}>LOG</Text>
       </Pressable>
     </View>
   );
