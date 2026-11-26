@@ -10,6 +10,8 @@ import {
   createClock,
   lineAdvance,
   STAND_IN_TRANSMISSION,
+  TuneInTuning,
+  Tuning,
 } from '../core';
 import type { AnalyzerSettings, AnalyzerTrace, AsunderClock, BandPosition } from '../core';
 
@@ -22,6 +24,11 @@ import type { AnalyzerSettings, AnalyzerTrace, AsunderClock, BandPosition } from
 
 interface AnalyzerState {
   trace: AnalyzerTrace;
+  /**
+   * The zoom window's own little trace: always the few notches around the
+   * dial (TuneInTuning.zoomNotches), whatever SPAN is set to.
+   */
+  zoom: AnalyzerTrace;
   clock: AsunderClock;
   /** The `clearCount` last acted on, to notice a new Clear request. */
   clearsSeen: number;
@@ -65,12 +72,20 @@ export interface AnalyzerModel {
    * The drawing slides the trace by this much so it glides under the marker.
    */
   nudge: SharedValue<number>;
+  /** The same, for the zoom window's trace. */
+  zoomNudge: SharedValue<number>;
 }
+
+/** How much band the zoom window shows, as a fraction of the whole band. */
+export const ZOOM_SPAN = TuneInTuning.zoomNotches * Tuning.detentSpacing;
 
 export function createAnalyzerModel(settings: AnalyzerSettings, start: BandPosition): AnalyzerModel {
   return {
     state: makeMutable<AnalyzerState>({
       trace: createAnalyzerTrace(AnalyzerTuning.points, AnalyzerTuning.spectrogramRows, start, settings.span),
+      // One row of history is the least a trace can have; the zoom window
+      // has no spectrogram, so it needs no more.
+      zoom: createAnalyzerTrace(TuneInTuning.zoomPoints, 1, start, ZOOM_SPAN),
       clock: createClock(),
       clearsSeen: 0,
       inputSeen: 'band',
@@ -83,6 +98,7 @@ export function createAnalyzerModel(settings: AnalyzerSettings, start: BandPosit
     lineStartedAt: makeMutable(0),
     frame: makeMutable(0),
     nudge: makeMutable(0),
+    zoomNudge: makeMutable(0),
   };
 }
 
@@ -129,9 +145,18 @@ export function analyzerModelFrame(model: AnalyzerModel, needle: BandPosition, d
     trace.span = settings.span;
     trace.center = needle;
     analyzerClear(trace);
+    state.zoom.center = needle;
+    analyzerClear(state.zoom);
   }
 
   model.nudge.value = analyzerFollow(trace, needle, settings.rbw, now, state.clock);
   analyzerAdvance(trace, dt, settings, now, state.clock);
+
+  // The zoom window: the same band, the same moment, just a much narrower
+  // stretch around the dial, swept on its own.
+  const zoom = state.zoom;
+  const zoomSettings: AnalyzerSettings = { span: ZOOM_SPAN, rbw: TuneInTuning.zoomRbw, traceMode: settings.traceMode };
+  model.zoomNudge.value = analyzerFollow(zoom, needle, zoomSettings.rbw, now, state.clock);
+  analyzerAdvance(zoom, dt, zoomSettings, now, state.clock);
   model.frame.value += 1;
 }
