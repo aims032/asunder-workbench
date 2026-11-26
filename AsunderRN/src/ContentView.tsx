@@ -11,7 +11,7 @@ import { DIAL_START } from './dial/DialModel';
 import { DialView } from './dial/DialView';
 import { EdgeWheelForm } from './dial/EdgeWheelForm';
 import { Readout } from './Readout';
-import { ScopeScreen } from './scope/ScopeScreen';
+import { ScopePanel } from './scope/ScopePanel';
 
 /**
  * The bench, placeholder layout: the clock up top, the spectrum analyzer
@@ -51,7 +51,7 @@ export function ContentView({ bench }: { bench: Bench }) {
       </View>
 
       <View style={styles.scope}>
-        <ScopeScreen needle={dial.needle} switchboard={bench.switchboard} player={bench.player} />
+        <ScopePanel needle={dial.needle} switchboard={bench.switchboard} player={bench.player} />
       </View>
 
       <Readout needle={dial.needle} display={display} startAt={DIAL_START} />
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   scope: {
-    flex: 2,
+    flex: 3,
     marginHorizontal: 10,
     marginBottom: 12,
   },

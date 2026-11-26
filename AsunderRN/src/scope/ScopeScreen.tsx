@@ -25,7 +25,7 @@ import {
   scopeRoll,
   ScopeTuning,
 } from '../core';
-import type { BandPosition, ScopeOverride } from '../core';
+import type { BandPosition, ScopeDrawMode, ScopeOverride } from '../core';
 import type { SwitchboardModel } from '../desk/SwitchboardModel';
 import type { TransmissionPlayer } from '../desk/TransmissionPlayer';
 import { useStore } from '../desk/Store';
@@ -33,6 +33,7 @@ import { MONOSPACED_FONT } from '../fonts';
 import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
 import { SCOPE_SHADER } from './ScopeShader';
 import { WaveTrace } from './WaveTrace';
+import type { WaveSettings } from './WaveTrace';
 import { useVectorArt, XYTrace } from './XYTrace';
 
 // THE SCOPE'S SCREEN: whatever is on the phone line patched into the SCOPE
@@ -42,9 +43,10 @@ import { useVectorArt, XYTrace } from './XYTrace';
 //   - PICTURE: the line's picture (Evan, Nov 23). Photos and clips are drawn
 //     as an old TV tube; vector art as a glowing line drawing (XYTrace.tsx).
 //
-// PLACEHOLDER SWITCH: tap the label in the corner to flip between WAVE and
-// PICTURE. The real mode switch (Waveform / XY / Picture) comes with the
-// knobs in the next step.
+//   - XY: left sound channel moves the beam sideways, right moves it up
+//     and down. NOT BUILT YET (the next step): for now it shows the idle
+//     flat line.
+// The mode switch and the knobs are in ScopePanel.tsx.
 // How clear it is follows the dial: tune in and the snow
 // clears, the roll stops, the color comes back. All the look numbers are in
 // ScopeTuning.
@@ -61,23 +63,29 @@ const PREVIEW_SECONDS = 4;
 
 const OVERRIDE_PREVIEW_PICTURE = 'placeholder';
 
-/** What the screen is showing (see the note at the top). */
-type ScreenMode = 'wave' | 'picture';
-
 export function ScopeScreen({
   needle,
   switchboard,
   player,
+  mode,
+  settings,
+  intensity,
+  focus,
   overrides = SCOPE_OVERRIDES,
 }: {
   needle: SharedValue<BandPosition>;
   switchboard: SwitchboardModel;
   /** The tape deck: where the transmission on the lines has got to. */
   player: TransmissionPlayer;
+  /** Where the mode switch is set. */
+  mode: ScopeDrawMode;
+  /** Where the knobs are set (see WaveTrace.tsx). */
+  settings: SharedValue<WaveSettings>;
+  intensity: number;
+  focus: number;
   overrides?: readonly ScopeOverride[];
 }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const [mode, setMode] = useState<ScreenMode>('wave');
 
   // Which phone line is patched into the scope (null = nothing).
   const board = useStore(switchboard.board);
@@ -99,6 +107,8 @@ export function ScopeScreen({
     playing.value = tape !== null;
     tapeStartedAt.value = tape?.startedAtSeconds ?? 0;
   }, [line, tape, waveLine, playing, tapeStartedAt]);
+  // XY isn't built yet: an input that is never playing gives the idle flat line.
+  const never = useSharedValue(false);
 
   // The pictures. useImage loads a bundled still and useVideo a clip; each
   // gives nothing until it has loaded. With nothing patched in there's no
@@ -189,16 +199,19 @@ export function ScopeScreen({
         previewStartsAt.value = Date.now() / 1000;
       }}
     >
-      {mode === 'wave' && size.width > 0 ? (
+      {mode !== 'picture' && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <WaveTrace
             width={size.width}
             height={size.height}
             needle={needle}
             line={waveLine}
-            playing={playing}
+            playing={mode === 'waveform' ? playing : never}
             tapeStartedAt={tapeStartedAt}
             time={time}
+            settings={settings}
+            intensity={intensity}
+            focus={focus}
           />
           {/* Asunder's crisp pixels, over the wave. */}
           {overrideImage ? (
@@ -246,17 +259,11 @@ export function ScopeScreen({
           </Fill>
         </Canvas>
       ) : null}
-      <Pressable
-        style={styles.label}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={`Scope mode: ${mode}. Tap to switch.`}
-        onPress={() => setMode(mode === 'wave' ? 'picture' : 'wave')}
-      >
+      <View style={styles.label} pointerEvents="none">
         <Text style={styles.labelText}>
-          {`SCOPE · ${line ? line.toUpperCase() : 'NO LINE'} · ${mode === 'wave' ? 'WAVE' : 'PICTURE'}`}
+          {`SCOPE · ${line ? line.toUpperCase() : 'NO LINE'}${mode === 'xy' ? ' · XY COMES NEXT' : ''}`}
         </Text>
-      </Pressable>
+      </View>
     </Pressable>
   );
 }

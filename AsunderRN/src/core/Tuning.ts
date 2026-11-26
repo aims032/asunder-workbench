@@ -865,8 +865,8 @@ export const ScopeTuning = {
   gridOpacity: 0.22,
 
   /**
-   * Time/div: how much time one square is wide, in seconds. PLACEHOLDER
-   * until the knob exists (step 3). Smaller = zoomed in on the wave;
+   * Time/div: how much time one square is wide, in seconds. This is where
+   * the knob STARTS (it snaps to the nearest of timeSteps). Smaller = zoomed in on the wave;
    * bigger = more wave squeezed onto the screen. 0.002 = 2 milliseconds a
    * square, so the whole screen is 1/50 of a second: two or three cycles of
    * a low voice.
@@ -875,25 +875,74 @@ export const ScopeTuning = {
 
   /**
    * Volts/div: how much signal one square is tall, where 1 is the loudest a
-   * voice gets. PLACEHOLDER until the knob exists. Smaller = a taller wave.
+   * voice gets. Where both Volts/div knobs START (snapped to the nearest of
+   * voltsSteps). Smaller = a taller wave.
    * 0.1 = a stand-in voice stands two or three squares tall. (0.25 would fit
    * the very loudest sound exactly between the top and bottom edges.)
    */
   voltsPerDivision: 0.1,
 
   /**
-   * The trigger level: the height the wave has to climb through before each
-   * sweep starts (see ScopeTrace.ts). PLACEHOLDER until the knob exists.
-   * Inside the wave's height = the wave holds still. Above its peaks = it
-   * slides.
+   * Where the trigger knob starts: the height the wave has to climb through
+   * before each sweep starts (see ScopeTrace.ts), in grid squares above the
+   * middle line. Inside the wave's height = the wave holds still. Above its
+   * peaks = it slides.
    */
-  triggerLevel: 0.12,
+  startTriggerSquares: 1.25,
 
   /**
    * How many points the wave is drawn with across the screen. More = a
    * smoother line and more work each frame.
    */
   tracePoints: 300,
+
+  // MARK: The knobs (ScopePanel.ts)
+
+  /**
+   * Evan's call, still open: does the TV-style Picture mode stay on the mode
+   * switch? Decided Nov 25: it stays. false = the switch only has Waveform
+   * and XY.
+   */
+  keepPictureMode: true,
+
+  /**
+   * The values Time/div clicks through, in seconds per square, shortest
+   * first. The 1-2-5 pattern is what real scopes use. Add or remove values
+   * to change how far the knob zooms.
+   */
+  timeSteps: [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1],
+
+  /** The values both Volts/div knobs click through, smallest (tallest wave) first. */
+  voltsSteps: [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1],
+
+  /** How far one click of a position knob moves the trace, in grid squares. Smaller = finer. */
+  positionStep: 0.25,
+
+  /** How far one click of the trigger knob moves the level, in grid squares. */
+  triggerStep: 0.25,
+
+  /** Where Intensity starts (0 to 1), how much one click changes it, and how dim it can go. */
+  startIntensity: 0.8,
+  intensityStep: 0.1,
+  lowestIntensity: 0.1,
+
+  /** Where Focus starts (0 = soft blur, 1 = sharp) and how much one click changes it. */
+  startFocus: 0.9,
+  focusStep: 0.1,
+
+  /**
+   * How blurry the beam gets with Focus all the way down, in screen points,
+   * and how many times thicker it gets.
+   */
+  focusBlur: 5,
+  focusSpread: 3,
+
+  /**
+   * How far a scope knob turns for one click, in degrees. Smaller = a
+   * twitchier knob. (The knobs are small, so this is coarser than the
+   * analyzer's.)
+   */
+  knobDegreesPerStep: 30,
 
   // MARK: Asunder's override
 

@@ -41,7 +41,16 @@ function KnobFace({ turned, size }: { turned: SharedValue<number>; size: number 
   );
 }
 
-export function Knob({ size, onStep }: { size: number; onStep: (direction: number) => void }) {
+export function Knob({
+  size,
+  onStep,
+  degreesPerStep = AnalyzerTuning.knobDegreesPerStep,
+}: {
+  size: number;
+  onStep: (direction: number) => void;
+  /** How far the knob turns for one step. Left out, it's the analyzer's own setting. */
+  degreesPerStep?: number;
+}) {
   /** How far the knob has turned in all, in degrees (drives the picture). */
   const turned = useSharedValue(0);
   /** The finger's angle last time, and how far it has turned since the last step. */
@@ -73,7 +82,7 @@ export function Knob({ size, onStep }: { size: number; onStep: (direction: numbe
       lastAngle.value = angle;
       turned.value += change;
       sinceStep.value += change;
-      const per = AnalyzerTuning.knobDegreesPerStep;
+      const per = degreesPerStep;
       while (Math.abs(sinceStep.value) >= per) {
         const direction = sinceStep.value > 0 ? 1 : -1;
         sinceStep.value -= direction * per;

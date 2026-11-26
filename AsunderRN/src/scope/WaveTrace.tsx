@@ -27,8 +27,21 @@ import type { BandPosition } from '../core';
 //
 // What you see, back to front: the grid, the beam's glow, the beam.
 // The numbers are in ScopeTuning (Waveform mode and The signal).
-// PLACEHOLDER settings: Time/div, Volts/div and the trigger level are fixed
-// numbers in ScopeTuning for now. The knobs come in the next step.
+// The knobs (ScopePanel.tsx) set Time/div, Volts/div, the positions, the
+// trigger level, and how bright and sharp the beam is.
+
+/** The knob settings the drawing reads every frame. */
+export interface WaveSettings {
+  /** Seconds per grid square. */
+  timePerDivision: number;
+  /** Signal per grid square. */
+  voltsPerDivision: number;
+  /** How far the trace is moved, in grid squares. */
+  positionUp: number;
+  positionAcross: number;
+  /** The trigger level, as a signal height. */
+  triggerLevel: number;
+}
 
 export function WaveTrace({
   width,
@@ -38,6 +51,9 @@ export function WaveTrace({
   playing,
   tapeStartedAt,
   time,
+  settings,
+  intensity,
+  focus,
 }: {
   width: number;
   height: number;
@@ -50,6 +66,12 @@ export function WaveTrace({
   tapeStartedAt: SharedValue<number>;
   /** Seconds, counting up (from ScopeScreen). Reading it redraws every frame. */
   time: SharedValue<number>;
+  /** Where the knobs are set. */
+  settings: SharedValue<WaveSettings>;
+  /** How bright the beam is, 0 to 1 (the Intensity knob). */
+  intensity: number;
+  /** How sharp the beam is, 0 (soft) to 1 (sharp) (the Focus knob). */
+  focus: number;
 }) {
   const T = ScopeTuning;
 
@@ -78,8 +100,9 @@ export function WaveTrace({
   const trace = useDerivedValue(() => {
     time.value; // redraw on every frame
     const samples = slice.value.samples;
+    const set = settings.value;
     const visible = T.tracePoints;
-    const step = scopeSecondsPerSample(T.timePerDivision, visible);
+    const step = scopeSecondsPerSample(set.timePerDivision, visible);
     // The slice ends at "now" on the tape.
     const tapeNow = Date.now() / 1000 - tapeStartedAt.value;
     const from = tapeNow - (samples.length - 1) * step;
@@ -92,29 +115,37 @@ export function WaveTrace({
       step,
       scopeClarity(needle.value),
     );
-    const start = scopeSweepStart(samples, T.triggerLevel, visible);
+    const start = scopeSweepStart(samples, set.triggerLevel, visible);
 
     const builder = Skia.PathBuilder.Make();
     const dx = width / (visible - 1);
+    // The horizontal position slides the whole trace sideways.
+    const shift = (set.positionAcross / T.gridAcross) * width;
     for (let i = 0; i < visible; i += 1) {
-      const y = scopeTraceDepth(samples[start + i], T.voltsPerDivision, 0) * height;
+      const y = scopeTraceDepth(samples[start + i], set.voltsPerDivision, set.positionUp) * height;
       if (i === 0) {
-        builder.moveTo(0, y);
+        builder.moveTo(shift, y);
       } else {
-        builder.lineTo(i * dx, y);
+        builder.lineTo(shift + i * dx, y);
       }
     }
     return builder.build();
   });
 
+  // Out of focus, the beam gets thicker and blurrier.
+  const softness = (1 - focus) * T.focusBlur;
+  const coreWidth = T.xyLineWidth * (1 + (1 - focus) * (T.focusSpread - 1));
+
   return (
     <Group>
       <Rect x={0} y={0} width={width} height={height} color="#020604" />
       <Path path={grid} style="stroke" strokeWidth={1} color={T.xyColor} opacity={T.gridOpacity} />
-      <Path path={trace} style="stroke" strokeWidth={T.xyGlow} strokeJoin="round" color={T.xyColor} opacity={0.4}>
+      <Path path={trace} style="stroke" strokeWidth={T.xyGlow} strokeJoin="round" color={T.xyColor} opacity={0.5 * intensity}>
         <BlurMask blur={T.xyGlow} style="normal" />
       </Path>
-      <Path path={trace} style="stroke" strokeWidth={T.xyLineWidth} strokeJoin="round" color={T.xyColor} opacity={0.95} />
+      <Path path={trace} style="stroke" strokeWidth={coreWidth} strokeJoin="round" color={T.xyColor} opacity={intensity}>
+        {softness > 0.2 ? <BlurMask blur={softness} style="normal" /> : null}
+      </Path>
     </Group>
   );
 }
