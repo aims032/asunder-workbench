@@ -36,3 +36,7 @@ export * from './Switchboard';
 export * from './CordBoard';
 export * from './LineInput';
 export * from './LivePrint';
+export * from './Scope';
+export * from './ScopeSignal';
+export * from './ScopeTrace';
+export * from './VectorArt';

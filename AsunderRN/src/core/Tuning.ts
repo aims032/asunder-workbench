@@ -871,3 +871,200 @@ export const TuneInTuning = {
    */
   noticeDigits: 3,
 };
+
+// SCOPE TUNING: the CRT screen on the bench (see Scope.ts).
+//
+// Kept apart from Tuning for the same reason as AnalyzerTuning (the Swift
+// app has no scope). Every number here is a first guess by Claude, for Evan
+// to tune by eye. "Clarity" is how well the dial is tuned, 0 (lost) to 1
+// (dead on).
+export const ScopeTuning = {
+  // MARK: How the picture comes in as you tune
+
+  /**
+   * The clarity where the picture first starts to show through the snow.
+   * Below it you see only snow. Higher = you have to tune in closer before
+   * anything appears.
+   */
+  pictureFrom: 0.15,
+
+  /**
+   * How far into the picture's fade-in the color starts to come back, 0 to 1.
+   * Before that it's black and white. Higher = color only when dead on.
+   */
+  colorFrom: 0.5,
+
+  /** How much snow there is with no signal at all, 0 to 1. */
+  snowLost: 1,
+
+  /**
+   * How much snow is left when tuned dead on, 0 to 1. A little keeps it
+   * looking like a broadcast. 0 = a perfectly clean picture.
+   */
+  snowClear: 0.16,
+
+  /** How far the picture smears sideways when barely tuned, as a fraction of the screen width. */
+  smearLost: 0.02,
+
+  /** How far scanlines shake sideways when barely tuned, as a fraction of the screen width. */
+  jitterLost: 0.03,
+
+  /** How far scanlines shake when tuned dead on. A tiny bit reads as "alive". */
+  jitterClear: 0.004,
+
+  /**
+   * How fast the picture rolls up the screen when barely tuned, in screens a
+   * second (the "vertical hold" slipping). 0 = it never rolls.
+   */
+  rollLost: 0.6,
+
+  /**
+   * How fast the vertical hold pulls a rolling picture back upright once
+   * you're tuned in (per second). Bigger = it snaps into place; smaller = it
+   * slides home slowly.
+   */
+  rollLock: 4,
+
+  // MARK: The tube
+
+  /**
+   * How many scanlines the picture has. Fewer = chunkier lines and a rougher
+   * picture. (Old US TV: about 480 visible. Evan, Nov 25: it looked too
+   * clean, so down from 240.)
+   */
+  scanlines: 80,
+
+  /**
+   * How many blocks across the picture is cut into. Fewer = blockier, more
+   * pixelated. A big number (like 2000) = no blocks at all. Together with
+   * `scanlines` this is the picture's resolution: 136 x 80 here.
+   */
+  pictureColumns: 136,
+
+  /** How dark the gaps between scanlines are, 0 (no lines) to 1 (black gaps). */
+  scanlineDepth: 0.5,
+
+  /** How much the glass bulges, 0 = flat. Bigger = more curve at the edges. */
+  bulge: 0.12,
+
+  /** How much the corners darken, 0 = not at all. */
+  vignette: 0.45,
+
+  /** How much the bright parts bloom outward, 0 = no glow. */
+  glow: 0.35,
+
+  /** How fast the snow flickers, in new frames of snow a second. */
+  snowRate: 30,
+
+  // MARK: The XY line drawing (vector art)
+
+  /** The beam's color, like the green phosphor of an old lab scope. */
+  xyColor: '#7dffb0',
+
+  /** How thick the beam's bright core is, in screen points. */
+  xyLineWidth: 1.6,
+
+  /** How wide the glow around the beam spreads, in screen points. Bigger = hazier. */
+  xyGlow: 6,
+
+  /** How far the beam wobbles off the line when barely tuned, as a fraction of the screen width. */
+  xyWobbleLost: 0.02,
+
+  /** How far it wobbles when tuned dead on. A tiny bit reads as "alive". */
+  xyWobbleClear: 0.003,
+
+  /** How much of the grass (fuzz) is left when tuned dead on, 0 to 1. */
+  xyGrassClear: 0.2,
+
+  /** How long the bright spot takes to trace the whole drawing once, in seconds. */
+  xyTraceSeconds: 2.5,
+
+  /** How much of the drawing the bright spot covers at once, 0 to 1. */
+  xyTraceLength: 0.04,
+
+  /** How much empty space is left around the drawing, as a fraction of the screen. */
+  xyMargin: 0.1,
+
+  // MARK: The signal (the sound the scope draws)
+
+  /**
+   * With nothing on its input, a real scope in XY mode shows a single dot.
+   * Evan asked for the flat line in every mode (Nov 25). true = flat line in
+   * XY too; false = the dot, to try it.
+   */
+  idleFlatLineInXY: true,
+
+  /**
+   * How tall the fuzz is when the dial is nowhere near the signal, where 1
+   * is the loudest a voice gets. Bigger = a wilder trace off the signal.
+   */
+  signalFuzz: 0.3,
+
+  /**
+   * How fine the fuzz and the breath in a stand-in voice are: how many new
+   * random values a second. Higher = a finer, hissier fuzz; lower = a
+   * slower, lumpier wobble.
+   */
+  signalGrainHz: 8_000,
+
+  /**
+   * How many harmonics (multiples of the pitch) a stand-in voice's wave is
+   * built from. More = a spikier, more detailed wave, and more work for the
+   * phone each frame. Only matters until there are real recordings.
+   */
+  signalHarmonics: 24,
+
+  // MARK: Waveform mode (the wave of the sound, left to right)
+
+  /** How many squares (divisions) the grid has across and up. A real scope has 10 by 8. */
+  gridAcross: 10,
+  gridUp: 8,
+
+  /** How bright the grid is, 0 (invisible) to 1. */
+  gridOpacity: 0.22,
+
+  /**
+   * Time/div: how much time one square is wide, in seconds. PLACEHOLDER
+   * until the knob exists (step 3). Smaller = zoomed in on the wave;
+   * bigger = more wave squeezed onto the screen. 0.002 = 2 milliseconds a
+   * square, so the whole screen is 1/50 of a second: two or three cycles of
+   * a low voice.
+   */
+  timePerDivision: 0.002,
+
+  /**
+   * Volts/div: how much signal one square is tall, where 1 is the loudest a
+   * voice gets. PLACEHOLDER until the knob exists. Smaller = a taller wave.
+   * 0.1 = a stand-in voice stands two or three squares tall. (0.25 would fit
+   * the very loudest sound exactly between the top and bottom edges.)
+   */
+  voltsPerDivision: 0.1,
+
+  /**
+   * The trigger level: the height the wave has to climb through before each
+   * sweep starts (see ScopeTrace.ts). PLACEHOLDER until the knob exists.
+   * Inside the wave's height = the wave holds still. Above its peaks = it
+   * slides.
+   */
+  triggerLevel: 0.12,
+
+  /**
+   * How many points the wave is drawn with across the screen. More = a
+   * smoother line and more work each frame.
+   */
+  tracePoints: 300,
+
+  // MARK: Asunder's override
+
+  /**
+   * How many big square pixels across the screen when Asunder takes it
+   * over. Fewer = chunkier pixels. PLACEHOLDER: what she shows is Evan's.
+   */
+  overridePixels: 64,
+
+  /** How long she takes to snap the screen over, in seconds. Shorter = more sudden. */
+  overrideInSeconds: 0.08,
+
+  /** How long she takes to let go, in seconds. */
+  overrideOutSeconds: 0.6,
+};

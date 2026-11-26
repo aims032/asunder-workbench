@@ -11,13 +11,14 @@ import { DIAL_START } from './dial/DialModel';
 import { DialView } from './dial/DialView';
 import { EdgeWheelForm } from './dial/EdgeWheelForm';
 import { Readout } from './Readout';
+import { ScopeScreen } from './scope/ScopeScreen';
 
 /**
  * The bench, placeholder layout: the clock up top, the spectrum analyzer
  * taking most of the screen (Confirmed Nov 20: analyzer on top, dial at the
  * bottom), then the readout, scale and wheel under the thumb. Plain drawings
- * only: the real look is Evan's artwork in Phase 4. Room for the scope is
- * still to be found (Instruments §0).
+ * only: the real look is Evan's artwork in Phase 4. The scope sits under
+ * the analyzer for now; where it really goes is still open (Instruments §0).
  */
 export function ContentView({ bench }: { bench: Bench }) {
   const display = currentBandDisplay;
@@ -49,6 +50,10 @@ export function ContentView({ bench }: { bench: Bench }) {
         <AnalyzerPanel model={bench.analyzer} needle={dial.needle} tuneIn={bench.tuneIn.status} />
       </View>
 
+      <View style={styles.scope}>
+        <ScopeScreen needle={dial.needle} switchboard={bench.switchboard} player={bench.player} />
+      </View>
+
       <Readout needle={dial.needle} display={display} startAt={DIAL_START} />
 
       <View style={styles.scale}>
@@ -73,9 +78,14 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   analyzer: {
-    flex: 1,
+    flex: 3,
     marginHorizontal: 10,
     marginTop: 10,
+    marginBottom: 12,
+  },
+  scope: {
+    flex: 2,
+    marginHorizontal: 10,
     marginBottom: 12,
   },
   scale: {
