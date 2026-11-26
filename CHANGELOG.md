@@ -11,12 +11,16 @@ and commits both straight to `dev`. If nothing changed, it does nothing.
 *A few words that come up:* a **PR** (pull request) is a proposed change waiting to be accepted.
 **Merged** means it was accepted and is now part of the branch. Numbers like **#12** are PR numbers on GitHub.
 
-<!-- changelog:last-checked 858b098 2026-11-24T02:50:00Z -->
+<!-- changelog:last-checked 303e4d7 2026-11-26T02:50:00Z -->
 
 ## Waiting to be merged into dev
 
 - **The oscilloscope: a TV-style screen on the bench** (draft PR #16). A small screen under the analyzer shows the picture on whichever phone line is patched into its jack: a photo, a looping clip, or a line drawing traced by one glowing green beam. Off the signal it's all snow; tune closer and the picture settles. A switch can swap the tube for crisp, flat pixels for Asunder (empty for now). Why: the scope is the next instrument, and it shows the scene feeds. Placeholder pictures only.
 - **Transmissions download when they unlock** (draft PR #17). Each transmission becomes a "pack" of its sound, clips, photos and script, kept online at Cloudflare (a hosting company). A tiny program there hands the phone only the packs whose unlock time has passed, and the phone keeps them so they play with no signal. Downloading is switched off until it's pointed at a server; nothing is set up online and no account has been made. Why: keeps the app download small, as Evan decided.
+- **The Physicist's field log** (draft PR #18). A third page, LOG, next to BENCH and DESK: a notebook you page through with back and next. Lines can be crossed out or circled in red, and on later pages some lines dissolve letter by letter as the page opens, with other words surfacing underneath. All the writing is placeholders for Evan, and the equations are draft suggestions, not canon. Why: the log is where clues to the transmissions will live.
+- **Tuning in to transmissions** (draft PR #19, waits on #18). Each transmission sits at one fixed frequency, the same on every phone. Far off you see a faint bump on the analyzer; close, the voice's shape starts to form; right on it, a LOCK lamp lights and Bess prints the transmission. Bess also prints a bare "SIGNAL" slip when something new comes on the band, and log pages can show the frequency as a clue. Frequencies are placeholders. Why: gives the analyzer a purpose, finding transmissions is a skill.
+- **The scope listens to a phone line** (draft PR #20, waits on #16). Behind the scenes, the scope now gets the sound on whichever line is patched into its jack. Nothing patched in, or the tape stopped, gives a flat line. Nothing looks different yet. Why: step 1 of the scope plan, the signal it will draw.
+- **The scope draws the voice as a wave** (draft PR #21, waits on #20). A glowing green line on a grid shows the sound on the patched line. A "trigger" (the point where each sweep starts) keeps a repeating wave standing still. Off the signal it's fuzz; tuned in, a voice-shaped wave comes through. Tap the corner label to flip to the TV picture. Why: step 2 of the scope plan, seeing the voices.
 
 ## 2026-11-23
 
