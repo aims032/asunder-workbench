@@ -22,8 +22,10 @@
 //                 the other transmissions: at least 5 notches apart, so two
 //                 bumps don't blur into one (one notch is about 1.2%).
 //   onBandFromDay Which day of the shared clock it appears on (day 0 = the
-//                 clock's start, World.epoch). While building, every one is on
-//                 the band anyway: see TuneInTuning.everythingOnTheBand.
+//                 clock's start, World.epoch). From then on it stays on the
+//                 band for good (Confirmed, Evan, Nov 25). While building,
+//                 every one is on the band anyway: see
+//                 TuneInTuning.everythingOnTheBand.
 //   logTime       The time the Physicist writes next to the frequency in the
 //                 field log, like "02:10".
 //   recording     The transmission itself: its voices and timed script

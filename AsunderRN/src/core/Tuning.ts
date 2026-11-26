@@ -735,13 +735,10 @@ export const TuneInTuning = {
    */
   everythingOnTheBand: true,
 
-  /**
-   * OPEN (Evan to decide): once a transmission is on the band, does it stay
-   * there for good, or is it only there at certain times? Built: it STAYS
-   * (this is true). Only-at-certain-times is not built yet; flipping this to
-   * false does nothing until it is.
-   */
-  staysOnceOnTheBand: true,
+  // CONFIRMED (Evan, Nov 25): once a transmission is on the band it STAYS
+  // there for good. The band has room for the whole story, and the story,
+  // like time, sits scrambled across it: past, present and future side by
+  // side. So there is no "only at certain times" switch here.
 
   // MARK: How it looks on the analyzer
 

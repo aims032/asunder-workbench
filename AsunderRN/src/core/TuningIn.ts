@@ -52,7 +52,7 @@ export function signalPosition(entry: ScheduledTransmission): BandPosition {
 
 /**
  * Is this transmission on the band at this moment? From its day onward it
- * stays (TuneInTuning.staysOnceOnTheBand, the built default). While building,
+ * stays for good (Confirmed, Evan, Nov 25). While building,
  * TuneInTuning.everythingOnTheBand puts them all on.
  */
 export function signalIsOnBand(entry: ScheduledTransmission, nowSeconds: number, clock: AsunderClock): boolean {
