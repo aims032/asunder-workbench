@@ -24,7 +24,13 @@ import { hapticTick } from '../haptics/Haptics';
 import { ScopeScreen } from './ScopeScreen';
 import type { WaveSettings } from './WaveTrace';
 
-// THE SCOPE, WHOLE: its screen, its mode switch and its knobs.
+// THE SCOPE, WHOLE: its screen, its mode switch and its controls.
+//
+// HOW THE CONTROLS FIT (Nov 25): eight separate knobs in a row were too
+// tight on a phone (Evan). So it works like the analyzer's panel: each
+// control is a KEY showing its name and value. Tap a key to pick it, then
+// turn the one big knob to change it. A real bench scope has a knob per
+// control; whether the finished art goes back to that is Evan's call.
 //
 // What each control does and what one click changes is in
 // core/ScopePanel.ts. This file only lays them out and passes the settings
@@ -66,7 +72,7 @@ const MODE_NAMES: Record<ScopeDrawMode, string> = {
   picture: 'PICTURE',
 };
 
-const KNOB_SIZE = 34;
+const KNOB_SIZE = 84;
 
 /** The settings the drawing reads every frame, worked out from the panel. */
 function waveSettings(panel: ScopePanelState): WaveSettings {
@@ -79,33 +85,37 @@ function waveSettings(panel: ScopePanelState): WaveSettings {
   };
 }
 
-/** One knob with its name above and its value below. */
-function PanelKnob({
+/** One control's key: its name and value. Lit when the big knob is set to change it. */
+function PanelKey({
   knob,
   value,
+  lit,
+  onPick,
   onTurn,
 }: {
   knob: ScopeKnob;
   value: string;
+  lit: boolean;
+  onPick: (knob: ScopeKnob) => void;
   onTurn: (knob: ScopeKnob, direction: number) => void;
 }) {
-  const onStep = useCallback((direction: number) => onTurn(knob, direction), [knob, onTurn]);
   return (
-    <View
-      style={styles.knob}
+    <Pressable
+      style={[styles.key, lit && styles.keyLit]}
+      onPress={() => onPick(knob)}
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={KNOB_SPOKEN[knob]}
       accessibilityValue={{ text: value }}
+      accessibilityState={{ selected: lit }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-      onAccessibilityAction={(event) => onStep(event.nativeEvent.actionName === 'increment' ? 1 : -1)}
+      onAccessibilityAction={(event) => onTurn(knob, event.nativeEvent.actionName === 'increment' ? 1 : -1)}
     >
-      <Text style={styles.knobName}>{KNOB_NAMES[knob]}</Text>
-      <Knob size={KNOB_SIZE} onStep={onStep} degreesPerStep={ScopeTuning.knobDegreesPerStep} />
-      <Text style={styles.knobValue} numberOfLines={1}>
+      <Text style={styles.keyName}>{KNOB_NAMES[knob]}</Text>
+      <Text style={styles.keyValue} numberOfLines={1}>
         {value}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -119,6 +129,8 @@ export function ScopePanel({
   player: TransmissionPlayer;
 }) {
   const [panel, setPanel] = useState<ScopePanelState>(scopePanelInitial);
+  /** Which control the big knob changes right now. */
+  const [active, setActive] = useState<ScopeKnob>('time');
 
   // Whenever a knob moves, hand the drawing its new settings.
   const settings = useSharedValue<WaveSettings>(waveSettings(panel));
@@ -133,6 +145,13 @@ export function ScopePanel({
       return scopePanelValue(next, knob) === scopePanelValue(p, knob) ? p : next;
     });
   }, []);
+
+  const pick = useCallback((knob: ScopeKnob) => {
+    hapticTick(0.4);
+    setActive(knob);
+  }, []);
+
+  const turnActive = useCallback((direction: number) => turn(active, direction), [active, turn]);
 
   const pickMode = useCallback((mode: ScopeDrawMode) => {
     hapticTick(0.4);
@@ -169,10 +188,20 @@ export function ScopePanel({
         ))}
       </View>
 
-      <View style={styles.knobs}>
-        {SCOPE_KNOBS.map((knob) => (
-          <PanelKnob key={knob} knob={knob} value={scopeKnobLabel(panel, knob)} onTurn={turn} />
-        ))}
+      <View style={styles.controls}>
+        <View style={styles.keys}>
+          {SCOPE_KNOBS.map((knob) => (
+            <PanelKey
+              key={knob}
+              knob={knob}
+              value={scopeKnobLabel(panel, knob)}
+              lit={active === knob}
+              onPick={pick}
+              onTurn={turn}
+            />
+          ))}
+        </View>
+        <Knob size={KNOB_SIZE} onStep={turnActive} degreesPerStep={ScopeTuning.knobDegreesPerStep} />
       </View>
     </View>
   );
@@ -211,25 +240,41 @@ const styles = StyleSheet.create({
   modeTextOn: {
     color: '#e6e6e6',
   },
-  knobs: {
+  controls: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  knob: {
     alignItems: 'center',
-    width: 42,
+    marginTop: 8,
+    gap: 10,
   },
-  knobName: {
+  keys: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  key: {
+    // Four keys to a row.
+    flexBasis: '22%',
+    flexGrow: 1,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#26292c',
+    borderWidth: 1,
+    borderColor: 'transparent',
+    alignItems: 'center',
+  },
+  keyLit: {
+    borderColor: '#f0b23a',
+  },
+  keyName: {
     fontFamily: MONOSPACED_FONT,
-    fontSize: 8,
+    fontSize: 10,
+    color: '#e6e6e6',
+  },
+  keyValue: {
+    fontFamily: MONOSPACED_FONT,
+    fontSize: 10,
     color: '#9aa1a6',
-    marginBottom: 3,
-  },
-  knobValue: {
-    fontFamily: MONOSPACED_FONT,
-    fontSize: 9,
-    color: '#d9d9d9',
-    marginTop: 3,
+    marginTop: 2,
   },
 });

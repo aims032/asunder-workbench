@@ -6,6 +6,9 @@
 // behavior only. No drawing here, so Evan's artwork for the knobs can replace
 // the placeholder pictures without touching any of this.
 //
+// On the phone, each control is a key and one big knob changes whichever
+// key is picked (scope/ScopePanel.tsx). "Knob" below means the control.
+//
 // THE CONTROLS
 //   Mode         how the beam draws: Waveform, XY or Picture.
 //   Time/div     how much time one grid square is wide (Waveform).

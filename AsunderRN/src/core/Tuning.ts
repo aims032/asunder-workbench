@@ -938,11 +938,10 @@ export const ScopeTuning = {
   focusSpread: 3,
 
   /**
-   * How far a scope knob turns for one click, in degrees. Smaller = a
-   * twitchier knob. (The knobs are small, so this is coarser than the
-   * analyzer's.)
+   * How far the scope's knob turns for one click, in degrees. Smaller = a
+   * twitchier knob.
    */
-  knobDegreesPerStep: 30,
+  knobDegreesPerStep: 24,
 
   // MARK: Asunder's override
 
