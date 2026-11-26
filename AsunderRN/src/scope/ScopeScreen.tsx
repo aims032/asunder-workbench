@@ -27,16 +27,25 @@ import {
 } from '../core';
 import type { BandPosition, ScopeOverride } from '../core';
 import type { SwitchboardModel } from '../desk/SwitchboardModel';
+import type { TransmissionPlayer } from '../desk/TransmissionPlayer';
 import { useStore } from '../desk/Store';
 import { MONOSPACED_FONT } from '../fonts';
 import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePictures';
 import { SCOPE_SHADER } from './ScopeShader';
+import { WaveTrace } from './WaveTrace';
 import { useVectorArt, XYTrace } from './XYTrace';
 
-// THE SCOPE'S SCREEN: the picture from whatever phone line is patched into
-// the SCOPE jack on the switchboard. Photos and clips are drawn as an old TV
-// tube (CRT mode); vector art as a glowing line drawing (XY mode, in
-// XYTrace.tsx). How clear it is follows the dial: tune in and the snow
+// THE SCOPE'S SCREEN: whatever is on the phone line patched into the SCOPE
+// jack on the switchboard, shown one of two ways:
+//   - WAVE: the sound on the line as a wave, like a lab oscilloscope
+//     (Evan, Nov 25; WaveTrace.tsx).
+//   - PICTURE: the line's picture (Evan, Nov 23). Photos and clips are drawn
+//     as an old TV tube; vector art as a glowing line drawing (XYTrace.tsx).
+//
+// PLACEHOLDER SWITCH: tap the label in the corner to flip between WAVE and
+// PICTURE. The real mode switch (Waveform / XY / Picture) comes with the
+// knobs in the next step.
+// How clear it is follows the dial: tune in and the snow
 // clears, the roll stops, the color comes back. All the look numbers are in
 // ScopeTuning.
 //
@@ -52,16 +61,23 @@ const PREVIEW_SECONDS = 4;
 
 const OVERRIDE_PREVIEW_PICTURE = 'placeholder';
 
+/** What the screen is showing (see the note at the top). */
+type ScreenMode = 'wave' | 'picture';
+
 export function ScopeScreen({
   needle,
   switchboard,
+  player,
   overrides = SCOPE_OVERRIDES,
 }: {
   needle: SharedValue<BandPosition>;
   switchboard: SwitchboardModel;
+  /** The tape deck: where the transmission on the lines has got to. */
+  player: TransmissionPlayer;
   overrides?: readonly ScopeOverride[];
 }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [mode, setMode] = useState<ScreenMode>('wave');
 
   // Which phone line is patched into the scope (null = nothing).
   const board = useStore(switchboard.board);
@@ -70,6 +86,19 @@ export function ScopeScreen({
   useEffect(() => {
     patched.value = line !== null && LINE_PICTURES[line] !== undefined;
   }, [line, patched]);
+
+  // What Waveform mode needs on the screen thread: the patched line, whether
+  // the tape is running, and when it started. (A "shared value" is a number
+  // the drawing code can read every frame without waiting for React.)
+  const tape = useStore(player.tape);
+  const waveLine = useSharedValue<string | null>(null);
+  const playing = useSharedValue(false);
+  const tapeStartedAt = useSharedValue(0);
+  useEffect(() => {
+    waveLine.value = line;
+    playing.value = tape !== null;
+    tapeStartedAt.value = tape?.startedAtSeconds ?? 0;
+  }, [line, tape, waveLine, playing, tapeStartedAt]);
 
   // The pictures. useImage loads a bundled still and useVideo a clip; each
   // gives nothing until it has loaded. With nothing patched in there's no
@@ -160,7 +189,33 @@ export function ScopeScreen({
         previewStartsAt.value = Date.now() / 1000;
       }}
     >
-      {isVector && overrideImage && size.width > 0 ? (
+      {mode === 'wave' && size.width > 0 ? (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <WaveTrace
+            width={size.width}
+            height={size.height}
+            needle={needle}
+            line={waveLine}
+            playing={playing}
+            tapeStartedAt={tapeStartedAt}
+            time={time}
+          />
+          {/* Asunder's crisp pixels, over the wave. */}
+          {overrideImage ? (
+            <Image
+              image={overrideImage}
+              x={0}
+              y={0}
+              width={size.width}
+              height={size.height}
+              fit="cover"
+              opacity={overrideAmount}
+              sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
+            />
+          ) : null}
+        </Canvas>
+      ) : null}
+      {mode === 'picture' && isVector && overrideImage && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <XYTrace art={art} width={size.width} height={size.height} look={xyLook} time={time} />
           {/* Asunder's crisp pixels, over the line drawing. */}
@@ -176,7 +231,7 @@ export function ScopeScreen({
           />
         </Canvas>
       ) : null}
-      {!isVector && shader && overrideImage && size.width > 0 ? (
+      {mode === 'picture' && !isVector && shader && overrideImage && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
           <Fill>
             <Shader source={shader} uniforms={uniforms}>
@@ -191,9 +246,17 @@ export function ScopeScreen({
           </Fill>
         </Canvas>
       ) : null}
-      <View style={styles.label} pointerEvents="none">
-        <Text style={styles.labelText}>{line ? `SCOPE · ${line.toUpperCase()}` : 'SCOPE · NO LINE'}</Text>
-      </View>
+      <Pressable
+        style={styles.label}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={`Scope mode: ${mode}. Tap to switch.`}
+        onPress={() => setMode(mode === 'wave' ? 'picture' : 'wave')}
+      >
+        <Text style={styles.labelText}>
+          {`SCOPE · ${line ? line.toUpperCase() : 'NO LINE'} · ${mode === 'wave' ? 'WAVE' : 'PICTURE'}`}
+        </Text>
+      </Pressable>
     </Pressable>
   );
 }

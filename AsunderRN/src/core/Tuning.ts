@@ -839,7 +839,7 @@ export const ScopeTuning = {
    * How tall the fuzz is when the dial is nowhere near the signal, where 1
    * is the loudest a voice gets. Bigger = a wilder trace off the signal.
    */
-  signalFuzz: 0.45,
+  signalFuzz: 0.3,
 
   /**
    * How fine the fuzz and the breath in a stand-in voice are: how many new
@@ -854,6 +854,46 @@ export const ScopeTuning = {
    * phone each frame. Only matters until there are real recordings.
    */
   signalHarmonics: 24,
+
+  // MARK: Waveform mode (the wave of the sound, left to right)
+
+  /** How many squares (divisions) the grid has across and up. A real scope has 10 by 8. */
+  gridAcross: 10,
+  gridUp: 8,
+
+  /** How bright the grid is, 0 (invisible) to 1. */
+  gridOpacity: 0.22,
+
+  /**
+   * Time/div: how much time one square is wide, in seconds. PLACEHOLDER
+   * until the knob exists (step 3). Smaller = zoomed in on the wave;
+   * bigger = more wave squeezed onto the screen. 0.002 = 2 milliseconds a
+   * square, so the whole screen is 1/50 of a second: two or three cycles of
+   * a low voice.
+   */
+  timePerDivision: 0.002,
+
+  /**
+   * Volts/div: how much signal one square is tall, where 1 is the loudest a
+   * voice gets. PLACEHOLDER until the knob exists. Smaller = a taller wave.
+   * 0.1 = a stand-in voice stands two or three squares tall. (0.25 would fit
+   * the very loudest sound exactly between the top and bottom edges.)
+   */
+  voltsPerDivision: 0.1,
+
+  /**
+   * The trigger level: the height the wave has to climb through before each
+   * sweep starts (see ScopeTrace.ts). PLACEHOLDER until the knob exists.
+   * Inside the wave's height = the wave holds still. Above its peaks = it
+   * slides.
+   */
+  triggerLevel: 0.12,
+
+  /**
+   * How many points the wave is drawn with across the screen. More = a
+   * smoother line and more work each frame.
+   */
+  tracePoints: 300,
 
   // MARK: Asunder's override
 

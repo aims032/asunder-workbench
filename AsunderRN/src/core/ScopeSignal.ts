@@ -19,7 +19,8 @@
 // standInVoiceSample below works a voice-like wave out from a few numbers
 // (Transmission.ts, StandInVoice), the same numbers the analyzer's LINE
 // input draws its spectrum from. Every phone works out the same wave. When
-// there are real recordings, only scopeLineSample has to change.
+// there are real recordings, only scopeLineSample and the loop in
+// scopeSignalWindow have to change.
 //
 // RULE: a helper function (or constant) has to be written ABOVE the first
 // place it is used (the DeclarationOrder test checks this).
@@ -42,33 +43,37 @@ function signalNoise(a: number, b: number): number {
 }
 
 /**
- * One sample of a stand-in voice at this moment (seconds from the start of
- * the transmission), between -1 and 1.
+ * The shape of a stand-in voice's wave during one syllable: its pitch, and
+ * how tall each harmonic is. It stays the same for the whole syllable, so
+ * it's worked out once per syllable and reused for every sample in it.
+ */
+export interface StandInShape {
+  /** The pitch for this syllable, in Hz. */
+  pitchHz: number;
+  /** How tall each harmonic is: heights[0] is the pitch itself, [1] is twice the pitch, and so on. */
+  heights: number[];
+  /** All the heights added up (used to keep the wave between -1 and 1). */
+  total: number;
+}
+
+/**
+ * A stand-in voice's shape for one syllable. `slot` is which syllable,
+ * counting from the start of the transmission.
  *
  * A voice is a buzz from the throat (the pitch and its multiples, called
  * harmonics) shaped by the mouth (formants: which harmonics come through
- * loud), plus some breath. Adding the harmonics up as sine waves gives the
- * spiky, repeating wave a real voice makes on a scope. It rises and falls in
- * syllables, in step with what the analyzer's LINE input shows.
+ * loud).
  */
-export function standInVoiceSample(voice: StandInVoice, atSeconds: number): number {
+export function standInVoiceShape(voice: StandInVoice, slot: number): StandInShape {
   const line = LineTuning;
-  const loudness = standInSyllable(voice, atSeconds);
-  if (!(loudness > 0.02)) {
-    return 0; // between syllables: silence
-  }
   // The pitch wanders a little from syllable to syllable (the same wander
   // the analyzer uses, so the two instruments agree).
-  const slot = Math.floor(atSeconds * line.syllablesPerSecond);
   const wander = analyzerHash(slot, 7) / 4_294_967_296 - 0.5;
-  const pitch = voice.pitchHz * (1 + wander * line.pitchWander);
-  // Time since this syllable began, so each syllable's wave starts clean.
-  const within = atSeconds - slot / line.syllablesPerSecond;
-
-  let sum = 0;
+  const pitchHz = voice.pitchHz * (1 + wander * line.pitchWander);
+  const heights: number[] = [];
   let total = 0;
   for (let k = 1; k <= ScopeTuning.signalHarmonics; k += 1) {
-    const hz = k * pitch;
+    const hz = k * pitchHz;
     if (hz > line.highHz) {
       break;
     }
@@ -81,10 +86,36 @@ export function standInVoiceSample(voice: StandInVoice, atSeconds: number): numb
     // Higher harmonics are naturally weaker. (dB to height: 20 dB = 10 times.)
     const tiltDb = -line.tiltDbPerOctave * Math.log2(k);
     const height = Math.pow(10, tiltDb / 20) * Math.sqrt(0.03 + 0.97 * formant);
-    sum += height * Math.sin(2 * Math.PI * hz * within);
+    heights.push(height);
     total += height;
   }
-  const buzz = total > 0 ? sum / total : 0;
+  return { pitchHz, heights, total };
+}
+
+/** Which syllable a moment falls in, counting from the start of the transmission. */
+export function standInSlot(atSeconds: number): number {
+  return Math.floor(atSeconds * LineTuning.syllablesPerSecond);
+}
+
+/**
+ * One sample of a stand-in voice, given the shape of the syllable it's in.
+ * Adding the harmonics up as sine waves gives the spiky, repeating wave a
+ * real voice makes on a scope. It rises and falls in syllables, in step with
+ * what the analyzer's LINE input shows.
+ */
+export function standInShapedSample(voice: StandInVoice, shape: StandInShape, atSeconds: number): number {
+  const loudness = standInSyllable(voice, atSeconds);
+  if (!(loudness > 0.02)) {
+    return 0; // between syllables: silence
+  }
+  // Time since this syllable began, so each syllable's wave starts clean.
+  const within = atSeconds - standInSlot(atSeconds) / LineTuning.syllablesPerSecond;
+  const turn = 2 * Math.PI * shape.pitchHz * within;
+  let sum = 0;
+  for (let k = 0; k < shape.heights.length; k += 1) {
+    sum += shape.heights[k] * Math.sin((k + 1) * turn);
+  }
+  const buzz = shape.total > 0 ? sum / shape.total : 0;
   // Breath: a fine hiss, new every signalGrainHz-th of a second.
   const grain = Math.floor(atSeconds * ScopeTuning.signalGrainHz);
   const breath = signalNoise(grain, Math.round(voice.pitchHz));
@@ -92,12 +123,20 @@ export function standInVoiceSample(voice: StandInVoice, atSeconds: number): numb
 }
 
 /**
+ * One sample of a stand-in voice at this moment (seconds from the start of
+ * the transmission), between -1 and 1.
+ */
+export function standInVoiceSample(voice: StandInVoice, atSeconds: number): number {
+  return standInShapedSample(voice, standInVoiceShape(voice, standInSlot(atSeconds)), atSeconds);
+}
+
+/**
  * One sample of the sound on a phone line at this moment (seconds from the
  * start of the transmission): every voice speaking on that line, added up.
  * Silence (0) when nobody is speaking on it, or when no line is given.
  *
- * THIS is the function that changes when real recordings exist: it will read
- * the voices' audio files instead of the stand-ins.
+ * When real recordings exist, this and the loop inside scopeSignalWindow
+ * (which does the same sum, faster) read the voices' audio files instead.
  */
 export function scopeLineSample(transmission: Transmission, line: string | null, atSeconds: number): number {
   if (line === null) {
@@ -183,11 +222,37 @@ export function scopeSignalWindow(
   const amount = scopeSignalAmount(clarity);
   const fuzz = (1 - amount) * ScopeTuning.signalFuzz;
   const duration = transmission.durationSeconds;
+  // The last syllable shape worked out, and which script line and syllable it was for.
+  let shape: StandInShape | null = null;
+  let shapeEntry = -1;
+  let shapeSlot = -1;
   for (let i = 0; i < n; i += 1) {
     // The stand-in loops, so a window that runs off the end carries on from the start.
     let at = startSeconds + i * secondsPerSample;
     at -= Math.floor(at / duration) * duration;
-    const signal = amount > 0 ? scopeLineSample(transmission, line, at) : 0;
+    // The same sum as scopeLineSample, but each syllable's shape is worked
+    // out once and reused, so a whole window is cheap enough for every frame.
+    let signal = 0;
+    if (amount > 0) {
+      const script = transmission.script;
+      for (let e = 0; e < script.length; e += 1) {
+        const entry = script[e];
+        if (entry.line !== line || at < entry.atSeconds || at >= entry.endSeconds) {
+          continue;
+        }
+        const voice = transmissionVoice(transmission, entry.voice);
+        if (voice === null) {
+          continue;
+        }
+        const slot = standInSlot(at);
+        if (shape === null || shapeEntry !== e || shapeSlot !== slot) {
+          shape = standInVoiceShape(voice.standIn, slot);
+          shapeEntry = e;
+          shapeSlot = slot;
+        }
+        signal += standInShapedSample(voice.standIn, shape, at);
+      }
+    }
     const grain = Math.floor(at * ScopeTuning.signalGrainHz);
     out[i] = signal * amount + (fuzz > 0 ? signalNoise(grain, 11) * fuzz : 0);
   }
