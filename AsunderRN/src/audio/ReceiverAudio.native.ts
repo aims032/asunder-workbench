@@ -13,6 +13,7 @@ import {
   createReceiverChain,
   createReceiverTargets,
   receptionTargets,
+  signalReception,
 } from '../core';
 import { prepareHaptics } from '../haptics/Haptics';
 import type { ReceiverAudio } from './ReceiverAudio.types';
@@ -140,6 +141,8 @@ function makeRenderCallback(
 
       // Where the dial is and what time it is decide what it should sound like...
       receptionTargets(state.targets, state.lastGoodDial, Date.now() / 1000, state.clock);
+      // ...nudged by any transmission it's close to (the static thins, the EQ opens)...
+      signalReception(state.targets, state.lastGoodDial, Date.now() / 1000, state.clock);
       // ...and the chain makes this block of sound, gliding toward that.
       chainRender(state.chain, left, framesToProcess, state.targets);
 

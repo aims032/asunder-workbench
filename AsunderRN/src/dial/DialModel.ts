@@ -19,6 +19,11 @@ import {
   dialRelease,
   dialStep,
   lockUpdate,
+  nearestSignal,
+  signalDetentsAway,
+  signalIsOnBand,
+  signalPosition,
+  TRANSMISSION_SCHEDULE,
   Tuning,
 } from '../core';
 import type { AsunderClock, BandPosition, DialPhysics, LockDetector } from '../core';
@@ -26,7 +31,7 @@ import { hapticLock, hapticTick } from '../haptics/Haptics';
 
 // THE LIVE DIAL: owns the physics and runs it every frame. Each frame it
 //   - tells the radio where it's tuned,
-//   - plays the lock pulse when the wheel arrives on the Carrier,
+//   - plays the lock pulse when the wheel arrives on the Carrier or a transmission,
 //   - plays a haptic tick when the wheel passes any other notch.
 // Touching it also turns the radio on, if it was off.
 //
@@ -53,6 +58,8 @@ import { hapticLock, hapticTick } from '../haptics/Haptics';
 interface DialState {
   physics: DialPhysics;
   lock: LockDetector;
+  /** The same lock pulse, for arriving on a transmission (TuningIn.ts). */
+  signalLock: LockDetector;
   clock: AsunderClock;
   /** The notch the wheel was nearest last frame, to notice when it passes one. */
   lastDetent: number;
@@ -86,7 +93,17 @@ export const DIAL_START = 0.5;
 /** `start` is where the dial sits when the app opens. */
 export function createDialModel(audio: ReceiverAudio, start: number = DIAL_START): DialModel {
   const physics = createDialPhysics(start);
-  physics.snapPoints = [carrierPosition()]; // the wheel snaps onto features
+  // The wheel snaps onto features: the Carrier, and every transmission that's
+  // on the band when the app opens. (One that comes on while the app is open
+  // gets its snap the next time the app opens; it still shows and locks.)
+  const clock = createClock();
+  const now = Date.now() / 1000;
+  physics.snapPoints = [carrierPosition()];
+  for (const entry of TRANSMISSION_SCHEDULE) {
+    if (signalIsOnBand(entry, now, clock)) {
+      physics.snapPoints.push(signalPosition(entry));
+    }
+  }
 
   audio.tune(start);
 
@@ -94,7 +111,8 @@ export function createDialModel(audio: ReceiverAudio, start: number = DIAL_START
     state: makeMutable<DialState>({
       physics: physics,
       lock: createLockDetector(),
-      clock: createClock(),
+      signalLock: createLockDetector(),
+      clock: clock,
       lastDetent: dialDetentIndex(physics),
       lastTickTime: 0,
     }),
@@ -177,6 +195,14 @@ export function dialModelFrame(model: DialModel, dt: number): boolean {
     scheduleOnRN(hapticLock);
   }
 
+  // The same pulse for arriving on a transmission. (Far from all of them,
+  // or none on the band, it's fed a distance far bigger than any lock.)
+  const nearest = nearestSignal(dialBand(physics), Date.now() / 1000, state.clock);
+  const signalAway = nearest < 0 ? 1e6 : signalDetentsAway(TRANSMISSION_SCHEDULE[nearest], dialBand(physics));
+  if (lockUpdate(state.signalLock, signalAway)) {
+    scheduleOnRN(hapticLock);
+  }
+
   // A tick for every notch passed, except the Carrier's own notch, which
   // gets the lock pulse instead. (A notch "starts" half a detent before
   // its center, which is when its tick would play.)
@@ -184,7 +210,8 @@ export function dialModelFrame(model: DialModel, dt: number): boolean {
   if (detent !== state.lastDetent) {
     state.lastDetent = detent;
     const onCarrierNotch = carrierOnAir && Math.abs(away) <= 0.5;
-    if (!onCarrierNotch) {
+    const onSignalNotch = Math.abs(signalAway) <= 0.5;
+    if (!onCarrierNotch && !onSignalNotch) {
       // performance.now() is a stopwatch in milliseconds that never jumps
       // (unlike the wall clock, which can be corrected while you watch).
       playTick(state, performance.now() / 1000);

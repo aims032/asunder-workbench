@@ -14,7 +14,9 @@ import type { AsunderClock } from './AsunderClock';
 import type { BandPosition } from './BandModel';
 import { bandDistance, bandPosition } from './BandModel';
 import { carrierIsOnAir, carrierPosition } from './Carrier';
+import { analyzerHash, dbToPower, powerToDb } from './Levels';
 import { noiseTemperatureAt } from './Reception';
+import { signalBandPower } from './TuningIn';
 import { AnalyzerTuning } from './Tuning';
 
 // WHERE THE PICTURE COMES FROM (Confirmed Nov 20: "swept from the band").
@@ -49,23 +51,6 @@ import { AnalyzerTuning } from './Tuning';
 // MARK: Measurement noise
 
 /**
- * A whole number made from two whole numbers, well mixed: change either input
- * by 1 and the output changes completely. It's a "hash", not a random number
- * generator: the same two inputs always give the same output, which is what
- * keeps the grass identical on every phone.
- * (Math.imul is 32-bit multiplication; `>>>` is a bit shift.)
- */
-export function analyzerHash(a: number, b: number): number {
-  let h = Math.imul(a | 0, 0x9e3779b1) ^ Math.imul(b | 0, 0x85ebca77);
-  h ^= h >>> 16;
-  h = Math.imul(h, 0x7feb352d);
-  h ^= h >>> 15;
-  h = Math.imul(h, 0x846ca68b);
-  h ^= h >>> 16;
-  return h >>> 0; // 0 up to 2^32 - 1
-}
-
-/**
  * How many cells the band is cut into for the noise: each cell gets its own
  * grass. Fine enough that even the narrowest span never shows two points
  * sharing a cell. 2^24.
@@ -91,16 +76,6 @@ export function analyzerNoiseFactor(position: BandPosition, nowSeconds: number):
 }
 
 // MARK: What's on the band
-
-/** dB to plain power, and back. */
-export function dbToPower(db: number): number {
-  return Math.pow(10, db / 10);
-}
-
-export function powerToDb(power: number): number {
-  // A floor so silence is a very low number rather than minus infinity.
-  return 10 * Math.log10(Math.max(power, 1e-30));
-}
 
 /**
  * The noise floor at a given RBW and noise temperature (0 = Still, 1 = moving),
@@ -139,6 +114,8 @@ export function analyzerFilterShape(distance: number, rbw: number, bucket: numbe
  * The level the analyzer measures at one band position, one moment, in dB.
  * `bucket` is how much band one screen point stands for. `withNoise` false
  * gives the noise-free average (handy for tests and for reading the floor).
+ * `dial` is where the dial is tuned; leave it out (null) to see the band
+ * without any transmissions on it.
  */
 export function analyzerMeasure(
   position: BandPosition,
@@ -147,6 +124,7 @@ export function analyzerMeasure(
   nowSeconds: number,
   clock: AsunderClock,
   withNoise: boolean,
+  dial: BandPosition | null = null,
 ): number {
   const temperature = noiseTemperatureAt(nowSeconds, clock);
   let power = dbToPower(analyzerFloorDb(rbw, temperature));
@@ -159,6 +137,12 @@ export function analyzerMeasure(
   if (carrierIsOnAir(nowSeconds, clock)) {
     const distance = bandDistance(position, carrierPosition());
     power += dbToPower(AnalyzerTuning.carrierDb) * analyzerFilterShape(distance, rbw, bucket);
+  }
+  // The transmissions on the band (TuningIn.ts). How sharp each one looks
+  // depends on how close the dial is, so they're only drawn when the dial is
+  // given (the trace passes its own center, which follows the dial).
+  if (dial !== null) {
+    power += signalBandPower(position, bucket, dial, nowSeconds, clock);
   }
   return powerToDb(power);
 }
@@ -368,7 +352,7 @@ export function analyzerShift(
   const bucket = analyzerBucket(trace);
   for (let i = from; i < to; i += 1) {
     trace.values[i] = analyzerMeasure(
-      analyzerPointPosition(trace, i), bucket, rbw, nowSeconds, clock, true,
+      analyzerPointPosition(trace, i), bucket, rbw, nowSeconds, clock, true, bandPosition(trace.center),
     );
     trace.counts[i] = 1;
     for (let row = 0; row < rowCount; row += 1) {
@@ -434,7 +418,9 @@ export function analyzerAdvance(
     // When this point was crossed, a moment ago (so even a slow frame
     // measures each point at its own moment, not all at once).
     const when = nowSeconds - ((end - next) / n) * sweepSeconds;
-    const db = analyzerMeasure(analyzerPointPosition(trace, i), bucket, settings.rbw, when, clock, true);
+    const db = analyzerMeasure(
+      analyzerPointPosition(trace, i), bucket, settings.rbw, when, clock, true, bandPosition(trace.center),
+    );
     analyzerStore(trace, i, db, settings.traceMode);
     trace.history[trace.newestRow * n + i] = db;
     if (i === n - 1) {
