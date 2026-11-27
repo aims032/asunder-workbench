@@ -500,3 +500,48 @@ export const AnalyzerTuning = {
    */
   knobDegreesPerStep: 24,
 };
+
+// DESK TUNING: the second screen (the switchboard and the printer).
+//
+// Kept apart from Tuning for the same reason as AnalyzerTuning: the Swift
+// parity test checks Tuning's names against Tuning.swift, and the Swift app
+// has no desk. Change these freely.
+export const DeskTuning = {
+  // MARK: The screen
+
+  /**
+   * How much of the desk screen the switchboard gets, from 0 to 1. The
+   * printer gets the rest. Bigger = more switchboard, less paper.
+   * (Placeholder split: the real layout is still being brainstormed.)
+   */
+  switchboardShare: 0.6,
+
+  // MARK: The printer
+
+  /**
+   * The most print-outs the printer keeps. Past this, the oldest fall off.
+   * Bigger = a longer roll to scroll back through.
+   */
+  printerKeeps: 500,
+
+  // MARK: The "new print-out" cue
+
+  /**
+   * Whether the cue plays at all. false = print-outs arrive silently.
+   */
+  cueEnabled: true,
+
+  /**
+   * The first transmission whose print-outs get the cue (Evan, Nov 23: it
+   * only matters once Asunder is introduced, about 30 transmissions in).
+   * Placeholder: set it to the real transmission once Evan has it.
+   * Lower = the cue starts earlier in the story.
+   */
+  cueFromTransmission: 30,
+
+  /**
+   * How long the visual cue (the glow on the page switch) lasts, in seconds.
+   * Longer = harder to miss, less subtle.
+   */
+  cueGlowSeconds: 4,
+};

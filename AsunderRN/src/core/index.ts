@@ -25,3 +25,5 @@ export * from './Carrier';
 export * from './Reception';
 export * from './Analyzer';
 export * from './ReceiverChain';
+export * from './Printouts';
+export * from './Switchboard';
