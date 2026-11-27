@@ -3,6 +3,7 @@ import {
   BlurMask,
   Canvas,
   ColorType,
+  Group,
   Image,
   Path,
   Rect,
@@ -15,7 +16,7 @@ import { useDerivedValue, useFrameCallback, useSharedValue } from 'react-native-
 import type { FrameInfo, SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { AnalyzerTuning, currentBandDisplay, lineHzAt, LineTuning } from '../core';
+import { AnalyzerTuning, currentBandDisplay, lineHzAt, LineTuning, TuneInTuning } from '../core';
 import type { AnalyzerTrace, BandPosition } from '../core';
 import { MONOSPACED_FONT } from '../fonts';
 import {
@@ -29,7 +30,7 @@ import {
   TRACE_MODE_NAMES,
 } from './AnalyzerControls';
 import type { PanelState } from './AnalyzerControls';
-import { analyzerModelFrame } from './AnalyzerModel';
+import { analyzerModelFrame, ZOOM_SPAN } from './AnalyzerModel';
 import type { AnalyzerModel } from './AnalyzerModel';
 
 // THE ANALYZER'S SCREEN: the digital half of the instrument.
@@ -253,6 +254,53 @@ export function AnalyzerScreen({
     return builder.build();
   });
 
+  // THE ZOOM WINDOW (always on, BAND only): a box in the top right corner
+  // with its own trace of just the few notches around the dial. It has its
+  // own, magnified level scale. See TuneInTuning.zoomNotches.
+  const zoomBox = useMemo(() => {
+    const base = traceHeight > 0 ? traceHeight : size.height / 2;
+    const width = size.width * TuneInTuning.zoomWidthShare;
+    return { x: size.width - width - 4, y: 4, width: width, height: base * TuneInTuning.zoomHeightShare };
+  }, [size.width, size.height, traceHeight]);
+
+  const zoomPath = useDerivedValue(() => {
+    model.frame.value; // redraw on every frame
+    const zoom = model.state.value.zoom;
+    const builder = Skia.PathBuilder.Make();
+    const n = zoom.points;
+    const dx = zoomBox.width / (n - 1);
+    const shift = model.zoomNudge.value;
+    let drawing = false;
+    for (let i = 0; i < n; i += 1) {
+      if (zoom.counts[i] === 0) {
+        drawing = false;
+        continue;
+      }
+      const x = zoomBox.x + (i - shift) * dx;
+      // The window's own level scale (TuneInTuning.zoomTopDropDb, zoomRangeDb).
+      const down = (referenceDb.value - TuneInTuning.zoomTopDropDb - zoom.values[i]) / TuneInTuning.zoomRangeDb;
+      const y = zoomBox.y + Math.max(0, Math.min(1, down)) * zoomBox.height;
+      if (drawing) {
+        builder.lineTo(x, y);
+      } else {
+        builder.moveTo(x, y);
+        drawing = true;
+      }
+    }
+    return builder.build();
+  });
+
+  // The box's edge, and a tick top and bottom at its middle: where the dial is.
+  const zoomFrame = useMemo(() => {
+    const b = zoomBox;
+    const builder = Skia.PathBuilder.Make();
+    builder.moveTo(b.x, b.y).lineTo(b.x + b.width, b.y).lineTo(b.x + b.width, b.y + b.height).lineTo(b.x, b.y + b.height).close();
+    const mid = b.x + b.width / 2;
+    builder.moveTo(mid, b.y).lineTo(mid, b.y + 5);
+    builder.moveTo(mid, b.y + b.height - 5).lineTo(mid, b.y + b.height);
+    return builder.build();
+  }, [zoomBox]);
+
   const spectroX = useDerivedValue(() => -model.nudge.value * (size.width / (AnalyzerTuning.points - 1)));
 
   // MARK: The words around the edge
@@ -313,7 +361,22 @@ export function AnalyzerScreen({
           </Path>
           <Path path={tracePath} style="stroke" strokeWidth={1.2} color={SCREEN.trace} />
           <Path path={markerPath} style="fill" color={SCREEN.marker} />
+          {onLine || size.width === 0 ? null : (
+            <>
+              <Rect x={zoomBox.x} y={zoomBox.y} width={zoomBox.width} height={zoomBox.height} color={SCREEN.glass} />
+              {/* The clip keeps the zoom trace inside its box. */}
+              <Group clip={Skia.XYWHRect(zoomBox.x, zoomBox.y, zoomBox.width, zoomBox.height)}>
+                <Path path={zoomPath} style="stroke" strokeWidth={1.2} color={SCREEN.trace} />
+              </Group>
+              <Path path={zoomFrame} style="stroke" strokeWidth={1} color={SCREEN.dimText} />
+            </>
+          )}
         </Canvas>
+        {onLine || size.width === 0 ? null : (
+          <Text style={[styles.dim, styles.zoomLabel, { left: zoomBox.x + 4, top: zoomBox.y + 3 }]}>
+            ZOOM {spanLabel(readout.center, ZOOM_SPAN)}
+          </Text>
+        )}
       </View>
 
       <View style={styles.bottomRow}>
@@ -350,6 +413,10 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: 4,
     overflow: 'hidden',
+  },
+  zoomLabel: {
+    position: 'absolute',
+    fontSize: 8,
   },
   topRow: {
     flexDirection: 'row',

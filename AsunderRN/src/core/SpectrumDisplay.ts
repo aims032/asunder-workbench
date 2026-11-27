@@ -79,6 +79,24 @@ export function spectrumShortLabel(hz: number): string {
   return whole + r.unit.slice(0, 1);
 }
 
+// MARK: The band's two ends
+
+/**
+ * The bottom and top of the wide band, in Hz. PLACEHOLDERS (see bottomHz and
+ * topHz below, which read these). They sit out here as plain numbers so code
+ * on the audio thread can use them too (see spectrumPositionOfHz).
+ */
+export const SPECTRUM_BOTTOM_HZ = 3e3;
+export const SPECTRUM_TOP_HZ = 1e15;
+
+/**
+ * Where on the band a frequency (in Hz) sits. The same sum as the display's
+ * positionOfHz, but a plain function, so the audio thread can call it.
+ */
+export function spectrumPositionOfHz(hz: number): number {
+  return wrapUnit(Math.log10(hz / SPECTRUM_BOTTOM_HZ) / Math.log10(SPECTRUM_TOP_HZ / SPECTRUM_BOTTOM_HZ));
+}
+
 // MARK: The display
 
 /**
@@ -115,8 +133,8 @@ export interface SpectrumDisplay extends BandDisplay {
  */
 export function createSpectrumDisplay(): SpectrumDisplay {
   const display: SpectrumDisplay = {
-    bottomHz: 3e3,
-    topHz: 1e15,
+    bottomHz: SPECTRUM_BOTTOM_HZ,
+    topHz: SPECTRUM_TOP_HZ,
 
     decades: () => Math.log10(display.topHz / display.bottomHz),
 

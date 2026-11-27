@@ -13,6 +13,8 @@ import { createSwitchboardModel } from "./desk/SwitchboardModel";
 import { createTransmissionPlayer } from "./desk/TransmissionPlayer";
 import type { TransmissionPlayer } from "./desk/TransmissionPlayer";
 import type { SwitchboardModel } from "./desk/SwitchboardModel";
+import { createTuneInWatcher } from "./tunein/TuneInWatcher";
+import type { TuneInWatcher } from "./tunein/TuneInWatcher";
 
 /**
  * Everything on the bench, made once when the app opens and kept for as long
@@ -31,6 +33,8 @@ export interface Bench {
   switchboard: SwitchboardModel;
   /** The tape of the transmission on the lines (a stand-in until there's a real one). */
   player: TransmissionPlayer;
+  /** Watches the dial for transmissions: notices, lock-on, printing (src/tunein). */
+  tuneIn: TuneInWatcher;
 }
 
 export function createBench(): Bench {
@@ -58,12 +62,16 @@ export function createBench(): Bench {
     }
   });
 
+  const dial = createDialModel(audio);
+  const printer = createPrinterModel(createPrinterStorage());
+
   return {
     audio: audio,
-    dial: createDialModel(audio),
+    dial: dial,
     analyzer: analyzer,
-    printer: createPrinterModel(createPrinterStorage()),
+    printer: printer,
     switchboard: switchboard,
     player: player,
+    tuneIn: createTuneInWatcher(dial, printer),
   };
 }

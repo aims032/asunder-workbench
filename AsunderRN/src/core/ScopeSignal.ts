@@ -26,8 +26,8 @@
 // place it is used (the DeclarationOrder test checks this).
 'worklet';
 
-import { analyzerHash } from './Analyzer';
-import { standInSyllable } from './LineInput';
+import { analyzerHash } from './Levels';
+import { standInSyllable } from './Voiceprint';
 import { transmissionVoice, transmissionVoicesOn } from './Transmission';
 import type { StandInVoice, Transmission } from './Transmission';
 import { LineTuning, ScopeTuning } from './Tuning';
