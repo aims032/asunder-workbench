@@ -34,6 +34,7 @@ import { bundledFileUri, LINE_PICTURES, OVERRIDE_PICTURES } from './ScopePicture
 import { SCOPE_SHADER } from './ScopeShader';
 import { WaveTrace } from './WaveTrace';
 import type { WaveSettings } from './WaveTrace';
+import { XYBeam } from './XYBeam';
 import { useVectorArt, XYTrace } from './XYTrace';
 
 // THE SCOPE'S SCREEN: whatever is on the phone line patched into the SCOPE
@@ -43,9 +44,8 @@ import { useVectorArt, XYTrace } from './XYTrace';
 //   - PICTURE: the line's picture (Evan, Nov 23). Photos and clips are drawn
 //     as an old TV tube; vector art as a glowing line drawing (XYTrace.tsx).
 //
-//   - XY: left sound channel moves the beam sideways, right moves it up
-//     and down. NOT BUILT YET (the next step): for now it shows the idle
-//     flat line.
+//   - XY: the left sound channel moves the beam sideways and the right
+//     moves it up and down, so a stereo sound draws a figure (XYBeam.tsx).
 // The mode switch and the knobs are in ScopePanel.tsx.
 // How clear it is follows the dial: tune in and the snow
 // clears, the roll stops, the color comes back. All the look numbers are in
@@ -107,8 +107,6 @@ export function ScopeScreen({
     playing.value = tape !== null;
     tapeStartedAt.value = tape?.startedAtSeconds ?? 0;
   }, [line, tape, waveLine, playing, tapeStartedAt]);
-  // XY isn't built yet: an input that is never playing gives the idle flat line.
-  const never = useSharedValue(false);
 
   // The pictures. useImage loads a bundled still and useVideo a clip; each
   // gives nothing until it has loaded. With nothing patched in there's no
@@ -201,18 +199,33 @@ export function ScopeScreen({
     >
       {mode !== 'picture' && size.width > 0 ? (
         <Canvas style={StyleSheet.absoluteFill}>
-          <WaveTrace
-            width={size.width}
-            height={size.height}
-            needle={needle}
-            line={waveLine}
-            playing={mode === 'waveform' ? playing : never}
-            tapeStartedAt={tapeStartedAt}
-            time={time}
-            settings={settings}
-            intensity={intensity}
-            focus={focus}
-          />
+          {mode === 'xy' ? (
+            <XYBeam
+              width={size.width}
+              height={size.height}
+              needle={needle}
+              line={waveLine}
+              playing={playing}
+              tapeStartedAt={tapeStartedAt}
+              time={time}
+              settings={settings}
+              intensity={intensity}
+              focus={focus}
+            />
+          ) : (
+            <WaveTrace
+              width={size.width}
+              height={size.height}
+              needle={needle}
+              line={waveLine}
+              playing={playing}
+              tapeStartedAt={tapeStartedAt}
+              time={time}
+              settings={settings}
+              intensity={intensity}
+              focus={focus}
+            />
+          )}
           {/* Asunder's crisp pixels, over the wave. */}
           {overrideImage ? (
             <Image
@@ -261,7 +274,7 @@ export function ScopeScreen({
       ) : null}
       <View style={styles.label} pointerEvents="none">
         <Text style={styles.labelText}>
-          {`SCOPE · ${line ? line.toUpperCase() : 'NO LINE'}${mode === 'xy' ? ' · XY COMES NEXT' : ''}`}
+          {`SCOPE · ${line ? line.toUpperCase() : 'NO LINE'}`}
         </Text>
       </View>
     </Pressable>

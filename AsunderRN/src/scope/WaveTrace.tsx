@@ -34,8 +34,10 @@ import type { BandPosition } from '../core';
 export interface WaveSettings {
   /** Seconds per grid square. */
   timePerDivision: number;
-  /** Signal per grid square. */
+  /** Signal per grid square (channel 1: the wave, and XY's sideways channel). */
   voltsPerDivision: number;
+  /** Signal per grid square for channel 2 (XY's up-and-down channel). */
+  voltsPerDivision2: number;
   /** How far the trace is moved, in grid squares. */
   positionUp: number;
   positionAcross: number;

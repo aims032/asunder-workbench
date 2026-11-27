@@ -79,6 +79,7 @@ function waveSettings(panel: ScopePanelState): WaveSettings {
   return {
     timePerDivision: scopePanelTime(panel),
     voltsPerDivision: scopePanelVolts(panel, 1),
+    voltsPerDivision2: scopePanelVolts(panel, 2),
     positionUp: panel.positionUp,
     positionAcross: panel.positionAcross,
     triggerLevel: scopePanelTriggerLevel(panel),

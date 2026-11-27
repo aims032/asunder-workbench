@@ -40,4 +40,5 @@ export * from './Scope';
 export * from './ScopeSignal';
 export * from './ScopeTrace';
 export * from './ScopePanel';
+export * from './ScopeXY';
 export * from './VectorArt';

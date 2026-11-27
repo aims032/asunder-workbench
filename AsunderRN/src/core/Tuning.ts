@@ -1055,6 +1055,49 @@ export const ScopeTuning = {
    */
   tracePoints: 300,
 
+  // MARK: XY mode driven by sound (ScopeXY.ts)
+
+  /**
+   * The placeholder figure's pitch on the left channel, in Hz. Higher = the
+   * beam laps the figure more times a second (a steadier, more solid line).
+   * PLACEHOLDER: the real XY sounds are Evan's.
+   */
+  xyFigureHz: 110,
+
+  /**
+   * The right channel's pitch as a multiple of the left's. 2 = a
+   * figure-eight, 1 = a circle or oval, 3 = three loops, 1.5 = a pretzel.
+   */
+  xyFigureRatio: 2,
+
+  /** How fast the figure appears to turn, in turns a second. 0 = it holds still. */
+  xyFigureTurnsPerSecond: 0.1,
+
+  /** How big the figure is, where 1 is the loudest a sound gets. */
+  xyFigureLevel: 0.3,
+
+  /**
+   * How much sound XY mode draws each frame, in seconds. Longer = more laps
+   * drawn on top of each other (a fuller figure, like longer afterglow).
+   */
+  xyWindowSeconds: 0.03,
+
+  /** How many points XY mode draws each frame. More = smoother curves, more work. */
+  xyPoints: 480,
+
+  /**
+   * How far the beam can move between two points (in grid squares) before
+   * it's only half as bright. Smaller = fast strokes fade out sooner, so the
+   * turning points stand out more.
+   */
+  xyDwellSquares: 0.12,
+
+  /** The dimmest a fast stroke gets, 0 to 1. 0 = fast strokes vanish. */
+  xyDimmest: 0.15,
+
+  /** How many steps of brightness the beam is drawn in. More = smoother shading, more work. */
+  xyBrightnessLevels: 4,
+
   // MARK: The knobs (ScopePanel.ts)
 
   /**
