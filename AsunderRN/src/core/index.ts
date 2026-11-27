@@ -39,4 +39,5 @@ export * from './LivePrint';
 export * from './Scope';
 export * from './ScopeSignal';
 export * from './ScopeTrace';
+export * from './ScopePanel';
 export * from './VectorArt';
