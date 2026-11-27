@@ -20,7 +20,7 @@
 // place it is used (the DeclarationOrder test checks this).
 'worklet';
 
-import { analyzerHash } from './Analyzer';
+import { analyzerHash } from './Levels';
 import { scopeInputIsIdle, scopeSignalAmount } from './ScopeSignal';
 import { ScopeTuning } from './Tuning';
 
